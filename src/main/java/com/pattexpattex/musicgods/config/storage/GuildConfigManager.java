@@ -1,0 +1,76 @@
+package com.pattexpattex.musicgods.config.storage;
+
+import com.pattexpattex.musicgods.Bot;
+import com.pattexpattex.musicgods.music.audio.LoopMode;
+import com.pattexpattex.musicgods.music.audio.ShuffleMode;
+import com.pattexpattex.musicgods.util.OtherUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.Map;
+
+public class GuildConfigManager {
+
+    private static final Logger log = LoggerFactory.getLogger(GuildConfigManager.class);
+
+    private static final String file = "storage/servers.json";
+    private final Map<Long, GuildConfig> configMap;
+    private final Bot bot;
+
+    public GuildConfigManager(Bot bot) {
+        this.bot = bot;
+        this.configMap = new HashMap<>();
+
+        try {
+            JSONObject loaded = new JSONObject(Files.readString(OtherUtils.getPath(file)));
+
+            loaded.keySet().forEach((id) -> {
+                long longId = Long.parseLong(id);
+
+                if (bot.getJDA().getGuildById(longId) != null)
+                    configMap.put(longId, new GuildConfig(loaded.getJSONObject(id), longId, this));
+            });
+
+            write();
+        }
+        catch (IOException | JSONException e) {
+            log.warn("Something broke while reading from '{}'", file, e);
+        }
+    }
+
+    public GuildConfig getConfig(long id) {
+        return configMap.computeIfAbsent(id, this::createDefault);
+    }
+
+    public void removeConfig(long id) {
+        configMap.remove(id);
+        write();
+    }
+
+    private GuildConfig createDefault(long id) {
+        return new GuildConfig(0L, 100, LoopMode.OFF, ShuffleMode.OFF, id, this);
+    }
+
+    protected void write() {
+        JSONObject toWrite = new JSONObject();
+
+        configMap.forEach((id, config) ->
+                toWrite.put(Long.toString(id), config.toJSON()));
+
+        try {
+            Files.write(OtherUtils.getPath(file), toWrite.toString(4).getBytes());
+        }
+        catch (IOException e) {
+            log.error("Something broke while writing to '{}'", file, e);
+        }
+    }
+
+    protected Bot getBot() {
+        return bot;
+    }
+}

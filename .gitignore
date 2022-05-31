@@ -1,19 +1,19 @@
 # Idea configuration
-.idea/
+/.idea/
 
 # Gradle
-.gradle/
-build/
+/.gradle/
+/build/
 
 # Tests
-src/test/
+/src/test/
 
 # Bot-generated files
-storage/
-temp/
-bin/
-config.json
+/storage/
+/temp/
+/bin/
+/config.json
 
 # Other
-BotClassDiagram.svg
-exit-codes.txt
+/BotClassDiagram.svg
+/exit-codes.txt
