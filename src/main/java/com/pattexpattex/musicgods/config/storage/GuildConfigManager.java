@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.HashMap;
@@ -18,7 +19,7 @@ public class GuildConfigManager {
 
     private static final Logger log = LoggerFactory.getLogger(GuildConfigManager.class);
 
-    private static final String file = "storage/servers.json";
+    private static final String FILE = "storage/servers.json";
     private final Map<Long, GuildConfig> configMap;
     private final Bot bot;
 
@@ -27,7 +28,8 @@ public class GuildConfigManager {
         this.configMap = new HashMap<>();
 
         try {
-            JSONObject loaded = new JSONObject(Files.readString(OtherUtils.getPath(file)));
+            createFile();
+            JSONObject loaded = new JSONObject(Files.readString(OtherUtils.getPath(FILE)));
 
             loaded.keySet().forEach((id) -> {
                 long longId = Long.parseLong(id);
@@ -39,7 +41,7 @@ public class GuildConfigManager {
             write();
         }
         catch (IOException | JSONException e) {
-            log.warn("Something broke while reading from '{}'", file, e);
+            log.warn("Something broke while reading from '{}'", FILE, e);
         }
     }
 
@@ -56,6 +58,17 @@ public class GuildConfigManager {
         return new GuildConfig(0L, 100, LoopMode.OFF, ShuffleMode.OFF, id, this);
     }
 
+    private static void createFile() throws IOException {
+        File dir = new File(FILE.split("/")[0]);
+        File file = new File(FILE);
+
+        if (!dir.mkdir()) return;
+        if (!file.createNewFile()) return;
+
+        log.info("Created '{}'", file.getName());
+        Files.write(OtherUtils.getPath(FILE), "{}".getBytes());
+    }
+
     protected void write() {
         JSONObject toWrite = new JSONObject();
 
@@ -63,10 +76,11 @@ public class GuildConfigManager {
                 toWrite.put(Long.toString(id), config.toJSON()));
 
         try {
-            Files.write(OtherUtils.getPath(file), toWrite.toString(4).getBytes());
+            createFile();
+            Files.write(OtherUtils.getPath(FILE), toWrite.toString(4).getBytes());
         }
         catch (IOException e) {
-            log.error("Something broke while writing to '{}'", file, e);
+            log.error("Something broke while writing to '{}'", FILE, e);
         }
     }
 
