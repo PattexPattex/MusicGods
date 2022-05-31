@@ -2,7 +2,7 @@
 name: Bug report
 about: Create a report to help and improve this bot
 title: "[Bug] No title"
-labels: bug
+labels: bug, enhancement
 assignees: PattexPattex
 
 ---
