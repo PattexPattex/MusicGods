@@ -2,8 +2,6 @@ package com.pattexpattex.musicgods.util;
 
 import com.pattexpattex.musicgods.Bot;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +11,8 @@ import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Objects;
 
 public class OtherUtils {
 
@@ -32,11 +31,7 @@ public class OtherUtils {
             catch (URISyntaxException ignored) {}
         }
 
-        return result;
-    }
-
-    public static String getSourceLocation() {
-        return OtherUtils.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        return result.toAbsolutePath();
     }
 
     public static String getInviteUrl() {

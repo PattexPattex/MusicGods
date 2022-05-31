@@ -35,7 +35,7 @@ import static com.sedmelluq.discord.lavaplayer.format.StandardAudioDataFormats.C
 public class TrackDownloader {
 
     private static final Logger log = LoggerFactory.getLogger(TrackDownloader.class);
-    private static final String FILE_NAME = "%s.%%(ext)s";
+    private static final String FILE_NAME = "temp/%s.%%(ext)s";
     private static final Random RANDOM = new Random();
 
     private static final AtomicBoolean DISABLED = new AtomicBoolean();
@@ -77,7 +77,7 @@ public class TrackDownloader {
 
             hook.editOriginal("Starting download, this may take a while...").queue();
 
-            YoutubeDLRequest request = new YoutubeDLRequest(url, "temp");
+            YoutubeDLRequest request = new YoutubeDLRequest(url);
             request.setOption("max-filesize", "8m");
             request.setOption("output", buildOutputLocation(id));
             request.setOption("audio-format", "mp3");
@@ -90,6 +90,7 @@ public class TrackDownloader {
                                 FormatUtils.buildFilledLine(((double) progress) / 100, 12), progress,
                                 FormatUtils.formatTimeFromMillis(eta * 1000L))).queue());
 
+                log.info("Completed download: {}", response.getCommand());
                 File file = new File(String.format("temp/%s.mp3", id));
 
                 if (!file.exists()) {
@@ -102,8 +103,6 @@ public class TrackDownloader {
                     hook.editOriginal("Something went wrong while downloading.").queue();
                     return null;
                 }
-
-                hook.editOriginal("Download completed.").queue();
 
                 hook.sendFile(file).setContent(String.format("URL: <%s> **|** File size: `%s MB` **|** Elapsed time: `%s`",
                         clientUrl, bytesToMegaBytes(file.length()),
@@ -196,10 +195,6 @@ public class TrackDownloader {
     }
 
     private static String buildOutputLocation(long id) {
-        if (Bot.getYTDlStatus() == BundledLibs.YTDL.BUNDLED) {
-            return String.format(OtherUtils.getSourceLocation() + FILE_NAME, id);
-        }
-
-        return String.format(FILE_NAME, id);
+        return String.format(OtherUtils.getPath(FILE_NAME).toString(), id);
     }
 }

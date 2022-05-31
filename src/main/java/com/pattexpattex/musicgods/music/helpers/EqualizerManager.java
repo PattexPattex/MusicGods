@@ -45,7 +45,7 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
     public static final float GAIN_MAX = 1.0f;
     public static final float GAIN_STEP = 0.125f;
 
-    private static final String SUBMIT_URL = Bot.GITHUB + "/issues/new?template=new_equalizer_preset.md";
+    private static final String SUBMIT_URL = Bot.GITHUB + "/issues/new?template=new-equalizer-preset.md";
 
     private final Kvintakord kvintakord;
     private final AudioPlayer player;
@@ -260,7 +260,7 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
 
         String arr = Arrays.toString(getCurrentGains());
         event.getHook().editOriginal(String.format("Exported equalizer configuration: \n`%s`", arr))
-                .setActionRow(Button.url("Submit to developer", SUBMIT_URL).asDisabled()).queue();  // TODO: 31. 05. 2022 Enable this
+                .setActionRow(Button.url("Submit to developer", SUBMIT_URL)).queue();
     }
 
     public boolean enableEqualizer() {
@@ -434,7 +434,7 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
 
     public static class GainPresets {
 
-        private GainPresets() {};
+        private GainPresets() {}
 
         public static final float[] BASS_BOOST = { 0.2f, 0.15f, 0.1f, 0.05f, 0.0f, -0.05f, -0.1f, -0.1f, -0.1f, -0.1f,
                 -0.1f, -0.1f, -0.1f, -0.1f, -0.1f };
