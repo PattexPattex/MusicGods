@@ -1,0 +1,57 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+group 'com.pattexpattex'
+version '0.1.0_alpha1'
+
+repositories {
+    mavenCentral()
+
+    maven { url 'https://jitpack.io' }
+    maven { url 'https://m2.chew.pro/snapshots' }
+    maven { url 'https://m2.dv8tion.net/releases' }
+
+    jcenter()
+
+    flatDir {
+        dirs 'lib'
+    }
+}
+
+dependencies {
+    implementation 'net.dv8tion:JDA:5.0.0-alpha.12' //JDA
+    implementation 'ch.qos.logback:logback-classic:1.2.11' //Logging
+    implementation 'org.json:json:20220320' //org.json for config
+
+    implementation 'com.sedmelluq:jda-nas:1.1.0' //JDA audio send subsystem
+    implementation 'com.github.idpromnut:lavaplayer:youtube_details_parse_bug-SNAPSHOT' //Lavaplayer
+    implementation 'se.michaelthelin.spotify:spotify-web-api-java:7.1.0' //Spotify web API wrapper
+    implementation 'com.jagrosh:JLyrics:0.5' //JLyrics
+    implementation 'com.typesafe:config:1.4.2' //Typesafe (dependency of JLyrics)
+    implementation 'com.sapher:youtubedl:1.1'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2' //Junit
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+}
+
+jar {
+    manifest {
+        attributes('Main-Class': 'com.pattexpattex.musicgods.Bot')
+    }
+}
+
+application {
+    mainClass.set('com.pattexpattex.musicgods.Bot')
+}
+
+compileJava {
+    options.compilerArgs << '-parameters'
+    options.encoding 'utf-8'
+}
+
+test {
+    useJUnitPlatform()
+}

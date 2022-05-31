@@ -1,0 +1,26 @@
+{
+  "basic": {
+    "token": null,
+    "owner": 0,
+    "eval": false
+  },
+
+  "presence": {
+    "status": "online",
+
+    "activity": {
+      "type": "playing",
+      "text": "/help"
+    }
+  },
+
+  "music": {
+    "spotify": {
+      "id": null,
+      "secret": null
+    },
+
+    "lyrics": "A-Z Lyrics",
+    "alone": 300
+  }
+}
