@@ -3,7 +3,6 @@ package com.pattexpattex.musicgods.commands;
 import com.pattexpattex.musicgods.ApplicationManager;
 import com.pattexpattex.musicgods.Bot;
 import com.pattexpattex.musicgods.GuildContext;
-import com.pattexpattex.musicgods.annotations.slash.Grouped;
 import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterface;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterfaceFactory;
@@ -37,14 +36,14 @@ public class SystemCommands implements SlashInterface {
         event.reply("Shutting down.").queue(m -> bot.shutdown(), f -> bot.shutdown());
     }
 
-    @SlashHandle(path = "system/test", description = "Used for testing.")
+    //@SlashHandle(path = "system/test", description = "Used for testing.")
     public void test(SlashCommandInteractionEvent event) {
         event.reply("Please stop.").setEphemeral(true).queue();
     }
 
     @SlashHandle(path = "system/version", description = "Get versions of used libraries.")
     public void version(SlashCommandInteractionEvent event) {
-        event.reply(String.format("Lavaplayer version: %s\nJDA version: %s\nMusicGods version: %s",
+        event.reply(String.format("Lavaplayer version: `%s`\nJDA version: `%s`\nMusicGods version: `%s`",
                 PlayerLibrary.VERSION, JDAInfo.VERSION, Bot.VERSION)).queue();
     }
 

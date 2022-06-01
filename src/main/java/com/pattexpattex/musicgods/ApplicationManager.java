@@ -1,5 +1,6 @@
 package com.pattexpattex.musicgods;
 
+import com.pattexpattex.musicgods.commands.EvalCommand;
 import com.pattexpattex.musicgods.commands.HelpCommand;
 import com.pattexpattex.musicgods.commands.SystemCommands;
 import com.pattexpattex.musicgods.exceptions.WrongArgumentException;
@@ -69,7 +70,7 @@ public class ApplicationManager extends ListenerAdapter {
                 new Kvintakord.Factory(), new HelpCommand.Factory());
 
         if (bot.getConfig().getEval()) {
-            //interfaceManager.registerControllers(new EvalCommand.Factory());
+            interfaceManager.registerControllers(new EvalCommand.Factory());
         }
 
         interfaceManager.finishSetup();
