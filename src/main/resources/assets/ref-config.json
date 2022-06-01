@@ -2,7 +2,8 @@
   "basic": {
     "token": null,
     "owner": 0,
-    "eval": false
+    "eval": false,
+    "update_alerts": true
   },
 
   "presence": {

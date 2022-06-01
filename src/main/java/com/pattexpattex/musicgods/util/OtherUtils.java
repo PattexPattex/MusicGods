@@ -2,7 +2,12 @@ package com.pattexpattex.musicgods.util;
 
 import com.pattexpattex.musicgods.Bot;
 import net.dv8tion.jda.api.JDA;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.jetbrains.annotations.Nullable;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.Util;
@@ -31,7 +36,32 @@ public class OtherUtils {
             catch (URISyntaxException ignored) {}
         }
 
-        return result.toAbsolutePath();
+        return result;
+    }
+
+    public static String getCurrentVersion() {
+        String v = Bot.class.getPackage().getImplementationVersion();
+        return (v == null ? "DEV" : v);
+    }
+
+    public static String getLatestVersion() {
+        Request request = new Request.Builder()
+                .get().url("https://api.github.com/repos/PattexPattex/MusicGods/releases/latest").build();
+
+        try (Response response = new OkHttpClient.Builder().build().newCall(request).execute()) {
+            ResponseBody body = response.body();
+
+            if (body != null) {
+                JSONObject obj = new JSONObject(body.string());
+                return obj.optString("tag_name", null);
+            }
+            else
+                return null;
+        }
+        catch (IOException e) {
+            log.warn("Failed retrieving latest version info", e);
+            return null;
+        }
     }
 
     public static String getInviteUrl() {

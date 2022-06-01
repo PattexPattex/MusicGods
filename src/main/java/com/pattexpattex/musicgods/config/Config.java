@@ -50,6 +50,10 @@ public class Config {
         return config.getJSONObject("basic").getBoolean("eval");
     }
 
+    public boolean getUpdateAlerts() {
+        return config.getJSONObject("basic").getBoolean("update_alerts");
+    }
+
 
     /* ---- Presence ---- */
 

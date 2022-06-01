@@ -34,15 +34,13 @@ import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
-import net.dv8tion.jda.api.hooks.*;
-import net.dv8tion.jda.internal.hooks.EventManagerProxy;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -256,6 +254,8 @@ public class ApplicationManager extends ListenerAdapter {
     public void onReady(@NotNull ReadyEvent event) {
         log.info("Available guilds: {} | Unavailable guilds: {} | Total guilds: {}",
                 event.getGuildAvailableCount(), event.getGuildUnavailableCount(), event.getGuildTotalCount());
+
+        bot.checkForUpdates();
     }
 
     @Override

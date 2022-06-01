@@ -5,7 +5,10 @@ plugins {
 }
 
 group 'com.pattexpattex'
-version '0.1.0_alpha1'
+version '0.1.0_alpha3'
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
 repositories {
     mavenCentral()
@@ -40,6 +43,9 @@ dependencies {
 jar {
     manifest {
         attributes('Main-Class': 'com.pattexpattex.musicgods.Bot')
+        attributes('Implementation-Version': project.version)
+        attributes('Implementation-Title': project.name)
+        attributes('Implementation-Vendor-Id': project.group)
     }
 }
 

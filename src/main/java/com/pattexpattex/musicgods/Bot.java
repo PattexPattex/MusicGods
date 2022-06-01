@@ -3,11 +3,13 @@ package com.pattexpattex.musicgods;
 import com.pattexpattex.musicgods.config.Config;
 import com.pattexpattex.musicgods.config.storage.GuildConfigManager;
 import com.pattexpattex.musicgods.util.BundledLibs;
+import com.pattexpattex.musicgods.util.OtherUtils;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static net.dv8tion.jda.api.requests.GatewayIntent.GUILD_MESSAGES;
@@ -25,9 +28,11 @@ import static net.dv8tion.jda.api.requests.GatewayIntent.GUILD_VOICE_STATES;
 public class Bot {
 
     public static final long DEVELOPER_ID = 714406547161350155L;
-    public static final String VERSION = "0.0.1-alpha1";
+    public static final String VERSION = OtherUtils.getCurrentVersion();
     public static final String GITHUB = "https://github.com/PattexPattex/MusicGods";
     public static final String DONATION = "https://ko-fi.com/pattexpattex";
+
+    private static final String UPDATE_MSG = "There is a new version of MusicGods available!\nCurrent: %s **|** Latest: %s\nGrab it here: %s/releases/tag/%s";
 
     public static final Permission[] PERMISSIONS = {
             Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ATTACH_FILES,
@@ -86,7 +91,6 @@ public class Bot {
         if (lazy)
             log.info("Booting in lazy mode...");
 
-
         ffmpeg = setupFFMPEG();
         ytdl = setupYTDL();
 
@@ -118,6 +122,10 @@ public class Bot {
 
         guildConfig = new GuildConfigManager(this);
         jda.getPresence().setPresence(config.getStatus(), config.getActivity());
+
+        String latest = OtherUtils.getLatestVersion();
+        if (latest != null && !Bot.VERSION.equalsIgnoreCase(latest))
+            log.info("There is a new update available: {} (current {}) - {}/releases/tag/{}", latest, VERSION, GITHUB, latest);
     }
 
     public void shutdown() {
@@ -144,6 +152,31 @@ public class Bot {
 
     public ApplicationManager getApplicationManager() {
         return applicationManager;
+    }
+
+    public void checkForUpdates() {
+        if (!config.getUpdateAlerts())
+            return;
+
+        applicationManager.getExecutorService().scheduleWithFixedDelay(() -> {
+            try {
+                String current = Bot.VERSION;
+                String latest = OtherUtils.getLatestVersion();
+                User owner = jda.retrieveUserById(config.getOwner()).complete();
+
+                if (latest == null)
+                    return;
+
+                if (current.equalsIgnoreCase(latest))
+                    return;
+
+                owner.openPrivateChannel().queue(channel -> channel.sendMessage(String.format(UPDATE_MSG, current, latest, GITHUB, latest)).queue());
+            }
+            catch (Exception e) {
+                log.warn("Something broke when sending an update notification", e);
+            }
+
+        }, 0, 24, TimeUnit.HOURS);
     }
 
 
