@@ -106,6 +106,5 @@ This bot and its source code may be hard to read for inexperienced programmers.
 If you want to edit the source code, please do so under the conditions of the MIT license.
 
 After importing the project, simply execute `gradlew build` in the command line.
-To build a working distribution, use `gradlew assembleDist` or `gradlew assembleShadowDist`.
 
 If you wish to contribute code to this bot, please open a pull request.
