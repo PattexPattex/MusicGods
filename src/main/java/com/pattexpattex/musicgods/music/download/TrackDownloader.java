@@ -4,7 +4,6 @@ import com.pattexpattex.musicgods.Bot;
 import com.pattexpattex.musicgods.music.Kvintakord;
 import com.pattexpattex.musicgods.music.audio.TrackMetadata;
 import com.pattexpattex.musicgods.music.spotify.SpotifyAudioSourceManager;
-import com.pattexpattex.musicgods.music.spotify.SpotifyAudioTrack;
 import com.pattexpattex.musicgods.util.BundledLibs;
 import com.pattexpattex.musicgods.util.FormatUtils;
 import com.pattexpattex.musicgods.util.OtherUtils;
@@ -39,6 +38,7 @@ public class TrackDownloader {
     private static final Random RANDOM = new Random();
 
     private static final AtomicBoolean DISABLED = new AtomicBoolean();
+    private static final AtomicBoolean ACTIVE = new AtomicBoolean();
 
     static {
         BundledLibs.YTDL ytdl = Bot.getYTDlStatus();
@@ -66,7 +66,7 @@ public class TrackDownloader {
     private TrackDownloader(InteractionHook hook, String url, String clientUrl) {
         this.id = RANDOM.nextLong(Long.MAX_VALUE);
         this.url = url;
-        this.clientUrl = clientUrl;
+        this.clientUrl = (clientUrl == null ? url : clientUrl);
         this.hook = hook;
     }
 
@@ -85,6 +85,11 @@ public class TrackDownloader {
             request.setOption("no-playlist");
 
             try {
+                if (!ACTIVE.compareAndSet(false, true)) {
+                    hook.editOriginal("A download is already active, please try again later.").queue();
+                    return null;
+                }
+
                 YoutubeDLResponse response = YoutubeDL.execute(request, (progress, eta) -> hook.editOriginal(
                         String.format("Download progress: `%s` (`%s%%`) **|** Estimated time left: `%s`",
                                 FormatUtils.buildFilledLine(((double) progress) / 100, 12), progress,
@@ -120,6 +125,9 @@ public class TrackDownloader {
             catch (YoutubeDLException e) {
                 log.error("Something broke while downloading", e);
                 hook.editOriginal("Something went wrong while downloading.").queue();
+            }
+            finally {
+                ACTIVE.set(false);
             }
 
             return null;
@@ -172,13 +180,12 @@ public class TrackDownloader {
     }
 
     private static void parseYoutubeUrl(AudioTrack track, String[] urls) {
+        urls[1] = TrackMetadata.getUri(track);
+
         if (track instanceof YoutubeAudioTrack)
             urls[0] = track.getInfo().uri;
         else
             throw new IllegalArgumentException("Track is not a YoutubeAudioTrack");
-
-        if (track instanceof SpotifyAudioTrack)
-            urls[1] = TrackMetadata.getUri(track);
     }
 
     private static RuntimeException wrapOut(String out, String err) {
@@ -195,6 +202,6 @@ public class TrackDownloader {
     }
 
     private static String buildOutputLocation(long id) {
-        return String.format(OtherUtils.getPath(FILE_NAME).toString(), id);
+        return String.format(OtherUtils.getPath(FILE_NAME).toAbsolutePath().toString(), id);
     }
 }

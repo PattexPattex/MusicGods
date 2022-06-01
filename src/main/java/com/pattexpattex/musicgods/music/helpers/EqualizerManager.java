@@ -417,6 +417,7 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
     public static float getGainOrDefault(EqualizerFactory equalizer, int position, int defaultPos) {
         return (0 <= position && position <= 15 ? equalizer.getGain(position) : equalizer.getGain(defaultPos));
     }
+
     public static class Factory implements SlashInterfaceFactory<EqualizerManager>,
             ButtonInterfaceFactory<EqualizerManager> {
 
