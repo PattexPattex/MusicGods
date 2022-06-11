@@ -4,7 +4,7 @@ import com.pattexpattex.musicgods.util.BotEmoji;
 
 public enum LoopMode {
 
-    OFF("off", BotEmoji.ARROW_RIGHT),
+    OFF("off", BotEmoji.ARROW_FORWARD),
     ALL("all", BotEmoji.REPEAT),
     SINGLE("single", BotEmoji.REPEAT_ONE);
 

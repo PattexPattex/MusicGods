@@ -30,7 +30,7 @@ dependencies {
     implementation 'org.json:json:20220320' //org.json for config
 
     implementation 'com.sedmelluq:jda-nas:1.1.0' //JDA audio send subsystem
-    implementation 'com.github.idpromnut:lavaplayer:youtube_details_parse_bug-SNAPSHOT' //Lavaplayer
+    implementation 'com.github.walkyst:lavaplayer-fork:1.3.97.1' //Lavaplayer
     implementation 'se.michaelthelin.spotify:spotify-web-api-java:7.1.0' //Spotify web API wrapper
     implementation 'com.jagrosh:JLyrics:0.5' //JLyrics
     implementation 'com.typesafe:config:1.4.2' //Typesafe (dependency of JLyrics)
@@ -39,7 +39,6 @@ dependencies {
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2' //Junit
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
-    implementation "org.jetbrains.kotlin:kotlin-script-runtime:1.4.10"
 }
 
 jar {
