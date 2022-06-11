@@ -56,7 +56,7 @@ public class QueueManager implements SlashInterface, ButtonInterface, Runnable {
         kvintakord.subInterfaceLoaded(this);
     }
 
-    @ButtonHandle(identifier = "kv:current.back", emoji = BotEmoji.FAST_FORWARD)
+    @ButtonHandle(identifier = "kv:current.back", emoji = BotEmoji.REWIND)
     public void backButton(ButtonInteractionEvent event) {
         if (kvintakord.getCheckManager().check(event)) return;
 
@@ -74,7 +74,7 @@ public class QueueManager implements SlashInterface, ButtonInterface, Runnable {
         kvintakord.getScheduler().pause();
     }
 
-    @ButtonHandle(identifier = "kv:current.forward", emoji = BotEmoji.REWIND)
+    @ButtonHandle(identifier = "kv:current.forward", emoji = BotEmoji.FAST_FORWARD)
     public void forwardButton(ButtonInteractionEvent event) {
         if (kvintakord.getCheckManager().check(event)) return;
 
