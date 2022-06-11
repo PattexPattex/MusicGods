@@ -32,7 +32,7 @@ public class Bot {
     public static final String GITHUB = "https://github.com/PattexPattex/MusicGods";
     public static final String DONATION = "https://ko-fi.com/pattexpattex";
 
-    private static final String UPDATE_MSG = "There is a new version of MusicGods available!\nCurrent: %s **|** Latest: %s\nGrab it here: %s/releases/tag/%s";
+    private static final String UPDATE_MSG = "There is a new version of MusicGods available!\nCurrent: `%s` **|** Latest: `%s`\nGrab it here: %s/releases/tag/%s";
 
     public static final Permission[] PERMISSIONS = {
             Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ATTACH_FILES,

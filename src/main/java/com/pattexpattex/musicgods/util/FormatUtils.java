@@ -105,7 +105,7 @@ public class FormatUtils {
      */
     @Contract(value = "null -> fail", pure = true)
     public static long decodeTimeToSeconds(String time) {
-        Checks.notNull(time, "Input");
+        Checks.notNull(time, "input");
 
         Pattern one = Pattern.compile("([01]?\\d|2[0-3]):[0-5]\\d(:[0-5]\\d)?");
 

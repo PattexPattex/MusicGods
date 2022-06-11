@@ -66,7 +66,7 @@ public class OtherUtils {
 
     public static String getInviteUrl() {
         JDA jda = Bot.getInstance().getJDA();
-        jda.setRequiredScopes("bot", "application.commands");
+        jda.setRequiredScopes("bot", "applications.commands");
         return jda.getInviteUrl(Bot.PERMISSIONS);
     }
 
