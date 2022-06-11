@@ -14,7 +14,7 @@ Some of its features include:
 
 **The bot is currently still in alpha and is in active development!**
  
-This project heavily depends on the [JDA](https://github.com/DV8FromTheWorld/JDA) and [Lavaplayer](https://github.com/sedmelluq/lavaplayer) libraries and was inspired by [JMusicBot](https://github.com/jagrosh/MusicBot).
+This project heavily depends on the [JDA](https://github.com/DV8FromTheWorld/JDA) and [Lavaplayer]([https://github.com/sedmelluq/lavaplayer](https://github.com/Walkyst/lavaplayer-fork)) libraries and was inspired by [JMusicBot](https://github.com/jagrosh/MusicBot).
 
 ## Getting started
 
