@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -73,7 +74,9 @@ public class Bot {
     public static Bot getInstance() {
         return bot;
     }
+    
     private JDA jda;
+    private final Random random;
     private final Config config;
     private final GuildConfigManager guildConfig;
     private final ApplicationManager applicationManager;
@@ -94,6 +97,7 @@ public class Bot {
         ffmpeg = setupFFMPEG();
         ytdl = setupYTDL();
 
+        random = new Random();
         config = new Config();
         applicationManager = new ApplicationManager(this);
 
@@ -153,7 +157,11 @@ public class Bot {
     public ApplicationManager getApplicationManager() {
         return applicationManager;
     }
-
+    
+    public Random getRandom() {
+        return random;
+    }
+    
     public void checkForUpdates() {
         if (!config.getUpdateAlerts())
             return;

@@ -35,7 +35,7 @@ public class TrackDownloader {
 
     private static final Logger log = LoggerFactory.getLogger(TrackDownloader.class);
     private static final String FILE_NAME = "temp/%s.%%(ext)s";
-    private static final Random RANDOM = new Random();
+    private static final Random RANDOM = Bot.getInstance().getRandom();
 
     private static final AtomicBoolean DISABLED = new AtomicBoolean();
     private static final AtomicBoolean ACTIVE = new AtomicBoolean();

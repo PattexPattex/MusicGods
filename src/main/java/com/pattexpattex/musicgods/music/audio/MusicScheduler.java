@@ -236,7 +236,7 @@ public class MusicScheduler extends AudioEventAdapter {
 
     private void startNext(boolean noInterrupt) {
         if (shuffleMode.get().isEnabled() && queue.size() > 1) {
-            Random rand = new Random();
+            Random rand = kvintakord.getApplicationManager().getBot().getRandom();
             List<AudioTrack> list = new ArrayList<>(queue);
             AudioTrack temp = list.remove(list.size() - 1);
             AudioTrack next = list.get(rand.nextInt(list.size()));
