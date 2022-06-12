@@ -32,8 +32,8 @@ public class SystemCommands implements SlashInterface {
     public void shutdown(SlashCommandInteractionEvent event) {
         if (event.getUser().getIdLong() != bot.getConfig().getOwner())
             event.reply("You have insufficient permissions.").queue();
-
-        event.reply("Shutting down.").queue(m -> bot.shutdown(), f -> bot.shutdown());
+        else
+            event.reply("Shutting down.").queue(m -> bot.shutdown(), f -> bot.shutdown());
     }
 
     //@SlashHandle(path = "system/test", description = "Used for testing.")
