@@ -8,9 +8,9 @@ import com.pattexpattex.musicgods.wait.Waiter;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.internal.utils.Checks;
@@ -49,31 +49,31 @@ public class Prompt {
     
     private Prompt(Consumer<PromptResult> onAccept, Consumer<PromptResult> onReject,
                    Consumer<PromptResult> onCancel, Consumer<InteractionHook> onTimeout,
-                   String prompt, SlashCommandInteractionEvent event,
+                   String prompt, IReplyCallback event,
                    int reqAccepts, int reqRejects, long timeoutSeconds) {
         
         this.id = RANDOM.nextLong(Long.MAX_VALUE);
         this.timeoutSeconds = timeoutSeconds;
-    
+        
         this.onAccept = onAccept;
         this.onReject = onReject;
         this.onCancel = onCancel;
         this.onTimeout = onTimeout;
-    
+        
         this.reqAccepts = reqAccepts;
         this.reqRejects = reqRejects;
-    
+        
         this.prompt = prompt;
         this.requester = event.getUser();
-    
+        
         this.accepts = new ArrayList<>();
         this.rejects = new ArrayList<>();
-    
+        
         this.predicate = ev -> ev.getComponentId().contains(Button.DUMMY_PREFIX + "prompt:")
                 && ev.getComponentId().contains(String.valueOf(id))
                 && !accepts.contains(ev.getUser())
                 && !rejects.contains(ev.getUser());
-    
+        
         this.hook = event.reply(buildMessage(onReject != null, onCancel != null)).complete();
         this.submittedAt = OtherUtils.epoch();
     }
@@ -250,7 +250,7 @@ public class Prompt {
     
     public static class Builder {
         
-        private final SlashCommandInteractionEvent event;
+        private final IReplyCallback event;
         
         private String prompt;
         private Consumer<PromptResult> onAccept, onReject, onCancel;
@@ -258,7 +258,7 @@ public class Prompt {
         private int reqAccepts, reqRejects;
         private long timeout;
         
-        public Builder(String prompt, SlashCommandInteractionEvent event, Consumer<PromptResult> onAccept) {
+        public Builder(String prompt, IReplyCallback event, Consumer<PromptResult> onAccept) {
             Checks.notBlank(prompt, "Prompt");
             Objects.requireNonNull(event, "SlashCommandInteractionEvent cannot be null");
             Objects.requireNonNull(onAccept, "OnAccept cannot be null");
@@ -340,6 +340,10 @@ public class Prompt {
         public Builder setOnTimeout(Consumer<InteractionHook> onTimeout) {
             this.onTimeout = onTimeout;
             return this;
+        }
+    
+        public IReplyCallback getEvent() {
+            return event;
         }
     
         public void build() {

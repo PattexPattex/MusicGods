@@ -1,10 +1,13 @@
 package com.pattexpattex.musicgods.music.helpers;
 
 import com.pattexpattex.musicgods.music.Kvintakord;
+import com.pattexpattex.musicgods.wait.prompt.Prompt;
+import net.dv8tion.jda.api.entities.AudioChannel;
 import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -18,23 +21,109 @@ public class CheckManager {
     public CheckManager(Kvintakord kvintakord) {
         this.kvintakord = kvintakord;
     }
-
+    
     /**
-     * Checks the given conditions. If no checks failed, a {@link Check#OK Check.OK} is returned.
-     * Otherwise, a {@link Check Check} with the highest severity is returned. If no {@code Checks}
-     * were passed, the method will check all conditions.
-     *
-     * @return The most severe failed {@link Check Check}, or
-     * {@link Check#OK Check.OK}.
+     * @deprecated - change visibility to {@code private}.
+     * Use {@link CheckManager#check(Runnable, IReplyCallback, Check...) check(Runnable, IReplyCallback, Check...)}
      */
-    public Check check(Member member, Check... checks) {
+    @Deprecated(forRemoval = true)
+    public boolean check(IReplyCallback event, Check... checks) {
+        Check check = check(event.getMember(), checks);
+        if (check != Check.OK) {
+            event.reply(check.description).queue();
+            return true;
+        }
+        
+        if (event instanceof ButtonInteractionEvent bie)
+            bie.deferEdit().queue();
+
+        return false;
+    }
+    
+    public void fairCheck(Runnable action, String message, IReplyCallback event, Check... checks) {
+        if (check(event, checks)) return;
+    
+        AudioChannel channel = kvintakord.getGuild().getAudioManager().getConnectedChannel();
+        if (channel == null) {
+            event.deferReply().queue(s -> action.run());
+            return;
+        }
+        
+        Member member = event.getMember();
+        Role role = kvintakord.getConfig().getDj();
+        
+        boolean isDj = member.getRoles()
+                .stream()
+                .anyMatch(r -> r.getIdLong() == role.getIdLong());
+        
+        if (isDj) {
+            event.deferReply().queue(s -> action.run());
+            return;
+        }
+        
+        List<Member> members = channel.getMembers()
+                .stream()
+                .filter(m -> !m.getUser().isBot()
+                        && !m.getVoiceState().isDeafened())
+                .toList();
+        
+        if (members.size() <= 1) {
+            event.deferReply().queue(s -> action.run());
+            return;
+        }
+        
+    
+        int i = members.size() / 2;
+        new Prompt.Builder(message, event, result -> action.run())
+                .setOnReject(result -> {})
+                .setRequiredAccepts(i)
+                .setRequiredRejects(i)
+                .setTimeout(60)
+                .build();
+    }
+    
+    public void check(Runnable action, IReplyCallback event, Check... checks) {
+        if (!check(event, checks))
+            action.run();
+    }
+    
+    public void checkAndReply(Runnable action, ButtonInteractionEvent event, Check... checks) {
+        if (!checkAndReply(event, checks))
+            action.run();
+    }
+    
+    @Deprecated(forRemoval = true)
+    public boolean check(ButtonInteractionEvent event, Check... checks) {
+        Check check = check(event.getMember(), checks);
+        if (check != Check.OK) {
+            event.editMessage(check.description).setActionRows().setEmbeds().queue();
+            return true;
+        }
+
+        event.deferEdit().queue();
+        return false;
+    }
+    
+    @Deprecated(forRemoval = true)
+    public boolean checkAndReply(IReplyCallback event, Check... checks) {
+        Check check = check(event.getMember(), checks);
+        if (check != Check.OK) {
+            event.reply(check.description).queue();
+            return true;
+        }
+
+        event.deferReply().queue();
+        return false;
+    }
+    
+    private Check check(Member member, Check... checks) {
         if (member == null) return Check.NULL_MEMBER;
         if (checks.length == 0) checks = Check.values();
-
+        
         List<Check> failed = new ArrayList<>();
         GuildVoiceState userState = member.getVoiceState();
         GuildVoiceState selfState = member.getGuild().getSelfMember().getVoiceState();
-
+        
         for (Check check : checks) {
             switch (check) {
                 case USER_CONNECTED -> {
@@ -59,42 +148,10 @@ public class CheckManager {
                 }
             }
         }
-
+        
         return failed.stream().max(Comparator.comparingInt(check -> check.severity)).orElse(Check.OK);
     }
-
-    public boolean check(SlashCommandInteractionEvent event, Check... checks) {
-        Check check = check(event.getMember(), checks);
-        if (check != Check.OK) {
-            event.reply(check.description).queue();
-            return true;
-        }
-
-        return false;
-    }
-
-    public boolean check(ButtonInteractionEvent event, Check... checks) {
-        Check check = check(event.getMember(), checks);
-        if (check != Check.OK) {
-            event.editMessage(check.description).setActionRows().setEmbeds().queue();
-            return true;
-        }
-
-        event.deferEdit().queue();
-        return false;
-    }
-
-    public boolean checkAndReply(ButtonInteractionEvent event, Check... checks) {
-        Check check = check(event.getMember(), checks);
-        if (check != Check.OK) {
-            event.editMessage(check.description).setActionRows().setEmbeds().queue();
-            return true;
-        }
-
-        event.deferReply().queue();
-        return false;
-    }
-
+    
     public enum Check {
         USER_CONNECTED(5, "You are not connected to a voice channel."),
         SELF_CONNECTED(4, "I am not connected to a voice channel."),
