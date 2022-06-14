@@ -1,5 +1,6 @@
 package com.pattexpattex.musicgods.music.helpers;
 
+import com.pattexpattex.musicgods.config.storage.GuildConfig;
 import com.pattexpattex.musicgods.music.Kvintakord;
 import com.pattexpattex.musicgods.wait.prompt.Prompt;
 import net.dv8tion.jda.api.entities.AudioChannel;
@@ -8,12 +9,16 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * @see Check
+ */
 public class CheckManager {
 
     private final Kvintakord kvintakord;
@@ -23,26 +28,42 @@ public class CheckManager {
     }
     
     /**
-     * @deprecated - change visibility to {@code private}.
-     * Use {@link CheckManager#check(Runnable, IReplyCallback, Check...) check(Runnable, IReplyCallback, Check...)}
+     * If the {@linkplain Check checks} pass, the {@link Runnable action} will be executed.
      */
-    @Deprecated(forRemoval = true)
-    public boolean check(IReplyCallback event, Check... checks) {
-        Check check = check(event.getMember(), checks);
-        if (check != Check.OK) {
-            event.reply(check.description).queue();
-            return true;
-        }
-        
-        if (event instanceof ButtonInteractionEvent bie)
-            bie.deferEdit().queue();
-
-        return false;
+    public void check(Runnable action, IReplyCallback event, Check... checks) {
+        if (baseCheck(event, checks))
+            action.run();
     }
     
-    public void fairCheck(Runnable action, String message, IReplyCallback event, Check... checks) {
-        if (check(event, checks)) return;
+    /**
+     * Works identically to {@link CheckManager#check(Runnable, IReplyCallback, Check...) check(Runnable, IReplyCallback, Check...)},
+     * except that it also calls {@link IReplyCallback#deferReply() deferReply()}
+     * or {@link ButtonInteractionEvent#deferEdit() deferEdit()} if the checks pass.
+     *
+     * @param deferEdit If set to {@code true} and the event is an instance of
+     * {@link ButtonInteractionEvent ButtonInteractionEvent} it will call the
+     * {@link ButtonInteractionEvent#deferEdit() deferEdit()} method instead of
+     * {@link IReplyCallback#deferReply() deferReply()}.
+     */
+    public void deferredCheck(Runnable action, IReplyCallback event, boolean deferEdit, Check... checks) {
+        if (!baseCheck(event, checks)) return;
     
+        if (deferEdit && event instanceof ButtonInteractionEvent bie)
+            bie.deferEdit().queue(s -> action.run());
+        else
+            event.deferReply().queue(s -> action.run());
+    }
+    
+    /**
+     * Additionally to checking only the given {@linkplain Check checks},
+     * it will also check if the member is a {@linkplain GuildConfig#getDj() DJ}.
+     * If not, it will automatically create a {@link Prompt Prompt}.
+     *
+     * @param message Message that will appear on the {@linkplain Prompt prompt}. Must not be null.
+     */
+    public void fairCheck(Runnable action, @NotNull String message, IReplyCallback event, Check... checks) {
+        if (!baseCheck(event, checks)) return;
+        
         AudioChannel channel = kvintakord.getGuild().getAudioManager().getConnectedChannel();
         if (channel == null) {
             event.deferReply().queue(s -> action.run());
@@ -72,7 +93,7 @@ public class CheckManager {
             return;
         }
         
-    
+        
         int i = members.size() / 2;
         new Prompt.Builder(message, event, result -> action.run())
                 .setOnReject(result -> {})
@@ -82,21 +103,50 @@ public class CheckManager {
                 .build();
     }
     
-    public void check(Runnable action, IReplyCallback event, Check... checks) {
-        if (!check(event, checks))
-            action.run();
+    /**
+     * @return {@code True} if the checks pass. {@code False} otherwise. Additionally,
+     * if any of the checks fail, it will automatically reply to the {@link IReplyCallback IReplyCallback}
+     * with the most significant check fail message.
+     */
+    private boolean baseCheck(IReplyCallback event, Check... checks) {
+        Check check = memberCheck(event.getMember(), checks);
+        if (check != Check.OK) {
+            if (event instanceof ButtonInteractionEvent bie)
+                bie.editMessage(check.message).queue();
+            else
+                event.reply(check.message).queue();
+            
+            return false;
+        }
+        
+        return true;
     }
     
-    public void checkAndReply(Runnable action, ButtonInteractionEvent event, Check... checks) {
-        if (!checkAndReply(event, checks))
-            action.run();
+    /**
+     * @deprecated - Use {@link CheckManager#check(Runnable, IReplyCallback, Check...) check(Runnable, IReplyCallback, Check...).
+     */
+    @Deprecated(forRemoval = true)
+    public boolean check(IReplyCallback event, Check... checks) {
+        Check check = memberCheck(event.getMember(), checks);
+        if (check != Check.OK) {
+            event.reply(check.message).queue();
+            return true;
+        }
+        
+        if (event instanceof ButtonInteractionEvent bie)
+            bie.deferEdit().queue();
+        
+        return false;
     }
     
+    /**
+     * @deprecated - Use {@link CheckManager#deferredCheck(Runnable, IReplyCallback, boolean, Check...) deferredCheck(Runnable, IReplyCallback, boolean, Check...)}.
+     */
     @Deprecated(forRemoval = true)
     public boolean check(ButtonInteractionEvent event, Check... checks) {
-        Check check = check(event.getMember(), checks);
+        Check check = memberCheck(event.getMember(), checks);
         if (check != Check.OK) {
-            event.editMessage(check.description).setActionRows().setEmbeds().queue();
+            event.editMessage(check.message).setActionRows().setEmbeds().queue();
             return true;
         }
 
@@ -104,11 +154,14 @@ public class CheckManager {
         return false;
     }
     
+    /**
+     * @deprecated - Use {@link CheckManager#deferredCheck(Runnable, IReplyCallback, boolean, Check...) deferredCheck(Runnable, IReplyCallback, boolean, Check...)}.
+     */
     @Deprecated(forRemoval = true)
     public boolean checkAndReply(IReplyCallback event, Check... checks) {
-        Check check = check(event.getMember(), checks);
+        Check check = memberCheck(event.getMember(), checks);
         if (check != Check.OK) {
-            event.reply(check.description).queue();
+            event.reply(check.message).queue();
             return true;
         }
 
@@ -116,7 +169,7 @@ public class CheckManager {
         return false;
     }
     
-    private Check check(Member member, Check... checks) {
+    private Check memberCheck(Member member, Check... checks) {
         if (member == null) return Check.NULL_MEMBER;
         if (checks.length == 0) checks = Check.values();
         
@@ -159,19 +212,19 @@ public class CheckManager {
         USER_DEAFENED(2, "You are deafened."),
         SELF_MUTED(1, "I am muted."),
         PLAYING(0, "I am not playing anything."),
-        NULL_MEMBER(Integer.MAX_VALUE, "Message author is null"), //Lol IDK how would this happen.
-        OK(Integer.MIN_VALUE, null);
+        NULL_MEMBER(Integer.MAX_VALUE, "Message author is null"), //How would this ever happen?
+        
+        OK(Integer.MIN_VALUE, null); //A placeholder for "Yes, all good here."
 
         /**
          * Higher number means higher severity.
          */
         public final int severity;
+        public final String message;
 
-        public final String description;
-
-        Check(int severity, String description) {
+        Check(int severity, String message) {
             this.severity = severity;
-            this.description = description;
+            this.message = message;
         }
 
     }
