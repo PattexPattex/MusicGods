@@ -13,6 +13,7 @@ import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterface;
 import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterfaceFactory;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterface;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterfaceFactory;
+import com.pattexpattex.musicgods.music.DjCommands;
 import com.pattexpattex.musicgods.music.Kvintakord;
 import com.pattexpattex.musicgods.util.BotEmoji;
 import com.pattexpattex.musicgods.util.builders.EqualizerGuiBuilder;
@@ -33,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.pattexpattex.musicgods.music.helpers.EqualizerManager.GainPresets.BASS_BOOST;
 
-@Grouped(Kvintakord.GROUP_ID)
+@Grouped(DjCommands.GROUP_ID)
 public class EqualizerManager implements SlashInterface, ButtonInterface {
 
     public static final String[] GAIN_ASSIGNMENTS_FREQ = { "25", "40", "63", "100", "160",
@@ -48,6 +49,7 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
     private static final String SUBMIT_URL = Bot.GITHUB + "/issues/new?template=new-equalizer-preset.md";
 
     private final Kvintakord kvintakord;
+    private final CheckManager checkManager;
     private final AudioPlayer player;
     private final EqualizerFactory equalizer;
     private final AtomicReference<InteractionHook> eqBox;
@@ -56,6 +58,7 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
 
     public EqualizerManager(EqualizerFactory equalizer, Kvintakord kvintakord) {
         this.player = kvintakord.getPlayer();
+        this.checkManager = kvintakord.getCheckManager();
         this.kvintakord = kvintakord;
         this.equalizer = equalizer;
         this.eqBox = new AtomicReference<>();
@@ -67,74 +70,76 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
 
 
     /* ---- Commands ---- */
-
-    @SlashHandle(path = "equalizer/enable", description = "Enables the equalizer.")
+    
+    // TODO: 14. 06. 2022 Implement better command inheritance
+    @SlashHandle(path = "equalizer/enable", description = "Enables the equalizer.", baseDescription = "Equalizer related commands.")
     public void eqEnable(SlashCommandInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        if (enableEqualizer())
-            event.reply("Enabled the equalizer.").queue();
-        else
-            event.reply("Equalizer is already enabled.").queue();
-
-        updateEqualizerMessage();
+        checkManager.check(() -> {
+            if (enableEqualizer())
+                event.reply("Enabled the equalizer.").queue();
+            else
+                event.reply("Equalizer is already enabled.").queue();
+    
+            updateEqualizerMessage();
+        }, event);
     }
 
     @SlashHandle(path = "equalizer/disable", description = "Disables the equalizer.")
     public void eqDisable(SlashCommandInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        if (disableEqualizer())
-            event.reply("Disabled the equalizer.").queue();
-        else
-            event.reply("Equalizer is already disabled.").queue();
-
-        updateEqualizerMessage();
+        checkManager.check(() -> {
+            if (disableEqualizer())
+                event.reply("Disabled the equalizer.").queue();
+            else
+                event.reply("Equalizer is already disabled.").queue();
+    
+            updateEqualizerMessage();
+        }, event);
     }
 
     @SlashHandle(path = "equalizer/reset", description = "Resets the equalizer to its default.")
     public void eqReset(SlashCommandInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        resetEqualizer();
-        updateEqualizerMessage();
-        event.reply("Reset the equalizer.").queue();
+        checkManager.check(() -> {
+            resetEqualizer();
+            updateEqualizerMessage();
+            event.reply("Reset the equalizer.").queue();
+        }, event);
     }
 
     @SlashHandle(path = "equalizer/gui", description = "Control the equalizer with a GUI.")
     public void equalizer(SlashCommandInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        enableEqualizer();
-        updateEqualizerMessage(event);
+        checkManager.check(() -> {
+            enableEqualizer();
+            updateEqualizerMessage(event);
+        }, event);
     }
 
     @SlashHandle(path = "equalizer/manual", description = "Set a custom equalizer gain at a given band.")
     public void eqBand(SlashCommandInteractionEvent event,
                        @SlashParameter(description = "A band.") @Range(from = 0, to = 14) int band,
                        @SlashParameter(description = "The gain.") @Range(from = -0.25d, to = 1.0d) double value) {
-        if (isEqualizerEnabled()) {
-            setGain(band, (float) value);
-            event.reply(String.format("Set gain at %d to %s.", band, value)).queue();
-        }
-        else
-            event.reply("Equalizer is not enabled.").queue();
-
-        updateEqualizerMessage();
+        checkManager.check(() -> {
+            if (isEqualizerEnabled()) {
+                setGain(band, (float) value);
+                event.reply(String.format("Set gain at %d to %s.", band, value)).queue();
+            }
+            else
+                event.reply("Equalizer is not enabled.").queue();
+    
+            updateEqualizerMessage();
+        }, event);
     }
 
     @SlashHandle(path = "equalizer/bassboost", description = "Enable bass boost.")
-    public void eqBass(SlashCommandInteractionEvent event,
-                           @SlashParameter(description = "The bass boost offset, positive or negative.", required = false) Double offset) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        if (offset == null)
-            useGains(BASS_BOOST, 0.0f);
-        else
-            useGains(BASS_BOOST, offset.floatValue());
-
-        updateEqualizerMessage();
-        event.reply("Enabled bass boost with an offset of " + (offset == null ? 0.0 : offset)).queue();
+    public void eqBass(SlashCommandInteractionEvent event, @SlashParameter(description = "The bass boost offset, positive or negative.", required = false) Double offset) {
+        checkManager.check(() -> {
+            if (offset == null)
+                useGains(BASS_BOOST, 0.0f);
+            else
+                useGains(BASS_BOOST, offset.floatValue());
+    
+            updateEqualizerMessage();
+            event.reply("Enabled bass boost with an offset of " + (offset == null ? 0.0 : offset)).queue();
+        }, event);
     }
 
 
@@ -142,110 +147,110 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
 
     @ButtonHandle(identifier = "kv.equalizer:gui", emoji = BotEmoji.SLIDER)
     public void equalizerButton(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().checkAndReply(event)) return;
-
-        enableEqualizer();
-        eqBox.set(event.getHook());
-        updateEqualizerMessage();
+        checkManager.deferredCheck(() -> {
+            enableEqualizer();
+            eqBox.set(event.getHook());
+            updateEqualizerMessage();
+        }, event, false);
     }
 
     @ButtonHandle(identifier = "kv.equalizer:up.0", emoji = BotEmoji.ARROW_UP_S)
     public void button00(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        eqBox.set(event.getHook());
-        incrementGain(GAIN_ASSIGNMENTS[0]);
-        updateEqualizerMessage();
+        checkManager.deferredCheck(() -> {
+            eqBox.set(event.getHook());
+            incrementGain(GAIN_ASSIGNMENTS[0]);
+            updateEqualizerMessage();
+        }, event, true);
     }
 
     @ButtonHandle(identifier = "kv.equalizer:up.1", emoji = BotEmoji.ARROW_UP_S)
     public void button01(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        eqBox.set(event.getHook());
-        incrementGain(GAIN_ASSIGNMENTS[1]);
-        updateEqualizerMessage();
+        checkManager.deferredCheck(() -> {
+            eqBox.set(event.getHook());
+            incrementGain(GAIN_ASSIGNMENTS[1]);
+            updateEqualizerMessage();
+        }, event, true);
     }
 
     @ButtonHandle(identifier = "kv.equalizer:up.2", emoji = BotEmoji.ARROW_UP_S)
     public void button02(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        eqBox.set(event.getHook());
-        incrementGain(GAIN_ASSIGNMENTS[2]);
-        updateEqualizerMessage();
+        checkManager.deferredCheck(() -> {
+            eqBox.set(event.getHook());
+            incrementGain(GAIN_ASSIGNMENTS[2]);
+            updateEqualizerMessage();
+        }, event, true);
     }
 
     @ButtonHandle(identifier = "kv.equalizer:up.3", emoji = BotEmoji.ARROW_UP_S)
     public void button03(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        eqBox.set(event.getHook());
-        incrementGain(GAIN_ASSIGNMENTS[3]);
-        updateEqualizerMessage();
+        checkManager.deferredCheck(() -> {
+            eqBox.set(event.getHook());
+            incrementGain(GAIN_ASSIGNMENTS[3]);
+            updateEqualizerMessage();
+        }, event, true);
     }
 
     @ButtonHandle(identifier = "kv.equalizer:up.4", emoji = BotEmoji.ARROW_UP_S)
     public void button04(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        eqBox.set(event.getHook());
-        incrementGain(GAIN_ASSIGNMENTS[4]);
-        updateEqualizerMessage();
+        checkManager.deferredCheck(() -> {
+            eqBox.set(event.getHook());
+            incrementGain(GAIN_ASSIGNMENTS[4]);
+            updateEqualizerMessage();
+        }, event, true);
     }
 
     @ButtonHandle(identifier = "kv.equalizer:down.0", emoji = BotEmoji.ARROW_DOWN_S)
     public void button10(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        eqBox.set(event.getHook());
-        decrementGain(GAIN_ASSIGNMENTS[0]);
-        updateEqualizerMessage();
+        checkManager.deferredCheck(() -> {
+            eqBox.set(event.getHook());
+            decrementGain(GAIN_ASSIGNMENTS[0]);
+            updateEqualizerMessage();
+        }, event, true);
     }
 
     @ButtonHandle(identifier = "kv.equalizer:down.1", emoji = BotEmoji.ARROW_DOWN_S)
     public void button11(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        eqBox.set(event.getHook());
-        decrementGain(GAIN_ASSIGNMENTS[1]);
-        updateEqualizerMessage();
+        checkManager.deferredCheck(() -> {
+            eqBox.set(event.getHook());
+            decrementGain(GAIN_ASSIGNMENTS[1]);
+            updateEqualizerMessage();
+        }, event, true);
     }
 
     @ButtonHandle(identifier = "kv.equalizer:down.2", emoji = BotEmoji.ARROW_DOWN_S)
     public void button12(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        eqBox.set(event.getHook());
-        decrementGain(GAIN_ASSIGNMENTS[2]);
-        updateEqualizerMessage();
+        checkManager.deferredCheck(() -> {
+            eqBox.set(event.getHook());
+            decrementGain(GAIN_ASSIGNMENTS[2]);
+            updateEqualizerMessage();
+        }, event, true);
     }
 
     @ButtonHandle(identifier = "kv.equalizer:down.3", emoji = BotEmoji.ARROW_DOWN_S)
     public void button13(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        eqBox.set(event.getHook());
-        decrementGain(GAIN_ASSIGNMENTS[3]);
-        updateEqualizerMessage();
+        checkManager.deferredCheck(() -> {
+            eqBox.set(event.getHook());
+            decrementGain(GAIN_ASSIGNMENTS[3]);
+            updateEqualizerMessage();
+        }, event, true);
     }
 
     @ButtonHandle(identifier = "kv.equalizer:down.4", emoji = BotEmoji.ARROW_DOWN_S)
     public void button14(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        eqBox.set(event.getHook());
-        decrementGain(GAIN_ASSIGNMENTS[4]);
-        updateEqualizerMessage();
+        checkManager.deferredCheck(() -> {
+            eqBox.set(event.getHook());
+            decrementGain(GAIN_ASSIGNMENTS[4]);
+            updateEqualizerMessage();
+        }, event, true);
     }
 
     @ButtonHandle(identifier = "kv.equalizer:reset", emoji = BotEmoji.ARROWS_ANTICLOCKWISE)
     public void resetButton(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        eqBox.set(event.getHook());
-        resetEqualizer();
-        updateEqualizerMessage();
+        checkManager.deferredCheck(() -> {
+            eqBox.set(event.getHook());
+            resetEqualizer();
+            updateEqualizerMessage();
+        }, event, true);
     }
 
     @ButtonHandle(identifier = "kv.equalizer:destroy", label = "End interaction", style = ButtonStyle.DANGER)
@@ -256,11 +261,11 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
 
     @ButtonHandle(identifier = "kv.equalizer:export", label = "Export this configuration", style = ButtonStyle.SUCCESS)
     public void getAccurateButton(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().checkAndReply(event)) return;
-
-        String arr = Arrays.toString(getCurrentGains());
-        event.getHook().editOriginal(String.format("Exported equalizer configuration: \n`%s`", arr))
-                .setActionRow(Button.url("Submit to developer", SUBMIT_URL)).queue();
+        checkManager.deferredCheck(() -> {
+            String arr = Arrays.toString(getCurrentGains());
+            event.getHook().editOriginal(String.format("Exported equalizer configuration: \n`%s`", arr))
+                    .setActionRow(Button.url("Submit to developer", SUBMIT_URL)).queue();
+        }, event, false);
     }
 
     public boolean enableEqualizer() {

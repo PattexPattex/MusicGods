@@ -6,8 +6,6 @@ import com.pattexpattex.musicgods.annotations.ButtonHandle;
 import com.pattexpattex.musicgods.annotations.slash.Grouped;
 import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterface;
 import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterfaceFactory;
-import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterface;
-import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterfaceFactory;
 import com.pattexpattex.musicgods.music.Kvintakord;
 import com.pattexpattex.musicgods.music.audio.MusicScheduler;
 import com.pattexpattex.musicgods.util.BotEmoji;
@@ -32,13 +30,14 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("unused")
 @Grouped(Kvintakord.GROUP_ID)
-public class QueueManager implements SlashInterface, ButtonInterface, Runnable {
+public class QueueManager implements ButtonInterface, Runnable {
 
     public static final int TRACK_LINE_SIZE = 32;
     public static final long TRACK_MOVE_MILLIS = 10000L;
 
     private final ApplicationManager manager;
     private final Kvintakord kvintakord;
+    private final CheckManager checkManager;
 
     private final AtomicReference<InteractionHook> queueBox;
     private final AtomicInteger queueBoxPage;
@@ -47,6 +46,7 @@ public class QueueManager implements SlashInterface, ButtonInterface, Runnable {
     private QueueManager(ApplicationManager manager, Kvintakord kvintakord) {
         this.manager = manager;
         this.kvintakord = kvintakord;
+        this.checkManager = kvintakord.getCheckManager();
 
         this.queueBox = new AtomicReference<>();
         this.queueBoxPage = new AtomicInteger();
@@ -58,111 +58,120 @@ public class QueueManager implements SlashInterface, ButtonInterface, Runnable {
 
     @ButtonHandle(identifier = "kv:current.back", emoji = BotEmoji.REWIND)
     public void backButton(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        kvintakord.getScheduler().forCurrentTrack(track ->
-                track.setPosition(Math.max(0, track.getPosition()) - TRACK_MOVE_MILLIS));
-
-        setQueueBox(event.getHook());
-        updateQueueMessage();
+        checkManager.fairCheck(() -> {
+            kvintakord.getScheduler().forCurrentTrack(track ->
+                    track.setPosition(Math.max(0, track.getPosition()) - TRACK_MOVE_MILLIS));
+    
+            setQueueBox(event.getHook());
+            updateQueueMessage();
+        }, String.format("Rewind the current track for %s seconds?", TRACK_MOVE_MILLIS), event, true);
     }
 
     @ButtonHandle(identifier = "kv:pause", emoji = BotEmoji.PLAY_PAUSE)
     public void pauseButton(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-        setQueueBox(event.getHook());
-        kvintakord.getScheduler().pause();
+        checkManager.deferredCheck(() -> {
+            setQueueBox(event.getHook());
+            kvintakord.getScheduler().pause();
+        }, event, true);
     }
 
     @ButtonHandle(identifier = "kv:current.forward", emoji = BotEmoji.FAST_FORWARD)
     public void forwardButton(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-
-        kvintakord.getScheduler().forCurrentTrack(track ->
-                track.setPosition(track.getPosition() + TRACK_MOVE_MILLIS));
-
-        setQueueBox(event.getHook());
-        updateQueueMessage();
+        checkManager.fairCheck(() -> {
+            kvintakord.getScheduler().forCurrentTrack(track ->
+                    track.setPosition(track.getPosition() + TRACK_MOVE_MILLIS));
+    
+            setQueueBox(event.getHook());
+            updateQueueMessage();
+        }, String.format("Fast forward the current track for %s seconds?", TRACK_MOVE_MILLIS), event, true);
     }
 
     @ButtonHandle(identifier = "kv:skip", emoji = BotEmoji.NEXT_TRACK)
     public void skipButton(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-        setQueueBox(event.getHook());
-        kvintakord.getScheduler().skipTrack();
+        kvintakord.getCheckManager().fairCheck(() -> {
+            setQueueBox(event.getHook());
+            kvintakord.getScheduler().skipTrack();
+        }, "Skip the current track?", event, true);
     }
 
     @ButtonHandle(identifier = "kv:stop", emoji = BotEmoji.STOP_TRACK)
     public void stopButton(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-        setQueueBox(event.getHook());
-        kvintakord.getScheduler().stop(true);
+    
+        checkManager.fairCheck(() -> {
+            setQueueBox(event.getHook());
+            kvintakord.getScheduler().stop(true);
+        }, "Stop playback?", event, true);
     }
 
     @ButtonHandle(identifier = "kv:loop", emoji = BotEmoji.REPEAT)
     public void loopButton(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-        setQueueBox(event.getHook());
-        kvintakord.getScheduler().incrementLoop();
+        checkManager.deferredCheck(() -> {
+            setQueueBox(event.getHook());
+            kvintakord.getScheduler().incrementLoop();
+        }, event, true);
     }
 
     @ButtonHandle(identifier = "kv:shuffle", emoji = BotEmoji.ARROWS_TWISTED)
     public void shuffleButton(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-        setQueueBox(event.getHook());
-        kvintakord.getScheduler().toggleShuffle();
+        checkManager.fairCheck(() -> {
+            setQueueBox(event.getHook());
+            kvintakord.getScheduler().toggleShuffle();
+        }, "Toggle the shuffle mode?", event, true);
     }
 
     @ButtonHandle(identifier = "kv:clear", emoji = BotEmoji.WASTEBASKET)
     public void clearButton(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-        setQueueBox(event.getHook());
-        kvintakord.getScheduler().emptyQueue();
-        updateQueueMessage();
+        checkManager.fairCheck(() -> {
+            setQueueBox(event.getHook());
+            kvintakord.getScheduler().emptyQueue();
+            updateQueueMessage();
+        }, "Clear the current queue?", event, true);
     }
 
     @ButtonHandle(identifier = "kv:lyrics", emoji = BotEmoji.SCROLL)
     public void lyricsButton(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().checkAndReply(event, CheckManager.Check.PLAYING)) return;
-
-        setQueueBox(event.getHook());
-
-        LyricsHelper helper = kvintakord.getLyricsHelper();
-
-        kvintakord.getScheduler().forCurrentTrack(track ->
-                helper.getLyricsAsync(helper.buildSearchQuery(track))
-                        .thenAccept(lyrics -> {
-                            Queue<Message> messages = helper.buildLyricsMessage(lyrics);
-
-                            event.getHook().editOriginal(messages.remove()).queue(message -> {
-                                for (Message msg : messages)
-                                    message.getChannel().sendMessage(msg).queue();
-                            });
-                        })
-                        .exceptionally(th -> {
-                            if (th instanceof TimeoutException te)
-                                event.getHook().editOriginal("Lyrics search timed out.").queue();
-                            else
-                                event.getHook().editOriginal("Something went wrong.").queue();
-                            return null;
-                        })
-        );
+        checkManager.deferredCheck(() -> {
+            setQueueBox(event.getHook());
+    
+            LyricsHelper helper = kvintakord.getLyricsHelper();
+    
+            kvintakord.getScheduler().forCurrentTrack(track -> // TODO: 14. 06. 2022 Why is this non-blocking and the one in Kvintakord is blocking???
+                    helper.getLyricsAsync(helper.buildSearchQuery(track))
+                            .thenAccept(lyrics -> {
+                                Queue<Message> messages = helper.buildLyricsMessage(lyrics);
+                        
+                                event.getHook().editOriginal(messages.remove()).queue(message -> {
+                                    for (Message msg : messages)
+                                        message.getChannel().sendMessage(msg).queue();
+                                });
+                            })
+                            .exceptionally(th -> {
+                                if (th instanceof TimeoutException te)
+                                    event.getHook().editOriginal("Lyrics search timed out.").queue();
+                                else
+                                    event.getHook().editOriginal("Something went wrong.").queue();
+                                return null;
+                            })
+            );
+        }, event, false);
     }
 
     @ButtonHandle(identifier = "kv:page.prev", label = "Previous page",
             emoji = BotEmoji.ARROW_BACKWARD, style = ButtonStyle.PRIMARY)
     public void prevPageButton(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-        setQueueBox(event.getHook());
-        previousQueueBoxPage();
+        checkManager.deferredCheck(() -> {
+            setQueueBox(event.getHook());
+            previousQueueBoxPage();
+        }, event, true);
     }
 
     @ButtonHandle(identifier = "kv:page.next", label = "Next page",
             emoji = BotEmoji.ARROW_FORWARD, style = ButtonStyle.PRIMARY)
     public void nextPageButton(ButtonInteractionEvent event) {
-        if (kvintakord.getCheckManager().check(event)) return;
-        setQueueBox(event.getHook());
-        nextQueueBoxPage();
+        checkManager.deferredCheck(() -> {
+            setQueueBox(event.getHook());
+            nextQueueBoxPage();
+        }, event, true);
     }
 
     @ButtonHandle(identifier = "kv:destroy", label = "End interaction", style = ButtonStyle.DANGER)
@@ -183,7 +192,7 @@ public class QueueManager implements SlashInterface, ButtonInterface, Runnable {
 
     public void setQueueBoxPage(int newPage) {
         queueBoxPage.set(newPage);
-        updateQueueMessage();
+        //updateQueueMessage();
     }
 
     public void setQueueBox(InteractionHook hook) {
@@ -195,7 +204,7 @@ public class QueueManager implements SlashInterface, ButtonInterface, Runnable {
         queueBoxPage.set(0);
 
         if (hook != null)
-            hook.deleteOriginal().queue();
+            hook.deleteOriginal().queue(null, f -> hook.retrieveOriginal().queue(s -> s.delete().queue()));
     }
 
     public void updateQueueMessage() {
@@ -240,8 +249,7 @@ public class QueueManager implements SlashInterface, ButtonInterface, Runnable {
         updateQueueMessage();
     }
 
-    public static class Factory implements SlashInterfaceFactory<QueueManager>,
-            ButtonInterfaceFactory<QueueManager> {
+    public static class Factory implements ButtonInterfaceFactory<QueueManager> {
 
         @Override
         public Class<QueueManager> getControllerClass() {

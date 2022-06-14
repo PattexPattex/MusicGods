@@ -1,6 +1,5 @@
 package com.pattexpattex.musicgods.music.helpers;
 
-import com.pattexpattex.musicgods.exceptions.SpotifyException;
 import com.pattexpattex.musicgods.interfaces.button.objects.Button;
 import com.pattexpattex.musicgods.music.Kvintakord;
 import com.pattexpattex.musicgods.music.audio.TrackMetadata;
@@ -14,7 +13,8 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
@@ -63,6 +63,10 @@ public class KvintakordHelper {
     public KvintakordHelper(Kvintakord kvintakord) {
         this.kvintakord = kvintakord;
     }
+    
+    public String formatTrackStartMessage(AudioTrack track) {
+        return String.format("Started playing **%s** (`%s`).", TrackMetadata.getName(track), FormatUtils.formatTimeFromMillis(track.getDuration()));
+    }
 
     public String cleanIdentifier(String identifier) {
         Matcher matcher = HTTP_PATTERN.matcher(identifier);
@@ -73,39 +77,30 @@ public class KvintakordHelper {
 
         return "ytsearch: " + identifier.replaceAll("(^[<|*_`]{0,3})|([>|*_`]{0,3}$)", "");
     }
-
+    
+    // TODO: 14. 06. 2022 Optimize and refactor this
     public void trackLoadedWaiter(AudioTrack track, SlashCommandInteractionEvent slashEvent) {
 
         kvintakord.getApplicationManager().getWaiter().waitForEvent(ButtonInteractionEvent.class,
-                        event -> event.getUser().getIdLong() == slashEvent.getUser().getIdLong() &&
-                                event.getComponentId().startsWith(Button.DUMMY_PREFIX + "kv:search.track."),
+                        event -> event.getUser().getIdLong() == slashEvent.getUser().getIdLong() && event.getComponentId().startsWith(Button.DUMMY_PREFIX + "kv:search.track."),
                         1, TimeUnit.MINUTES)
-                .thenAccept(event -> {
-                    if (kvintakord.getCheckManager().check(event, CheckManager.Check.SELF_MUTED,
-                            CheckManager.Check.USER_CONNECTED, CheckManager.Check.USER_DEAFENED)) return;
-
+                .thenAccept(event -> kvintakord.getCheckManager().check(() -> {
                     switch (event.getComponentId()) {
                         case Button.DUMMY_PREFIX + "kv:search.track.yes" -> {
-                            event.getHook().editOriginal(String.format("Loaded **%s** (`%s`).",
-                                            TrackMetadata.getName(track),
-                                            FormatUtils.formatTimeFromMillis(track.getDuration())))
+                            event.getHook().editOriginal(String.format("Loaded **%s** (`%s`).", TrackMetadata.getName(track), FormatUtils.formatTimeFromMillis(track.getDuration())))
                                     .setActionRows(Collections.emptyList()).queue();
-
+        
                             kvintakord.connectToVoiceChannel(event.getMember().getVoiceState().getChannel());
-
+        
                             kvintakord.setOutputChannel(event.getTextChannel());
                             kvintakord.getScheduler().addToQueue(track);
                         }
-                        case Button.DUMMY_PREFIX + "kv:search.track.no" ->
-                                event.getHook().editOriginal("Okay then.")
-                                        .setActionRows(Collections.emptyList()).queue();
-                        default -> event.getHook().editOriginal("Unknown option.")
-                                .setActionRows(Collections.emptyList()).queue();
+                        case Button.DUMMY_PREFIX + "kv:search.track.no" -> event.getHook().editOriginal("Okay then.").setActionRows(Collections.emptyList()).queue();
+                        default -> event.getHook().editOriginal("Unknown option.").setActionRows(Collections.emptyList()).queue();
                     }
-                })
+                }, event, CheckManager.Check.SELF_MUTED, CheckManager.Check.USER_CONNECTED, CheckManager.Check.USER_DEAFENED))
                 .exceptionally(throwable -> {
-                    slashEvent.getHook().editOriginal("Timed out.")
-                            .setActionRows(Collections.emptyList()).queue();
+                    slashEvent.getHook().editOriginal("Timed out.").setActionRows(Collections.emptyList()).queue();
 
                     return null;
                 });
@@ -114,34 +109,21 @@ public class KvintakordHelper {
     public void playlistLoadedWaiter(AudioPlaylist playlist, SlashCommandInteractionEvent slashEvent) {
 
         kvintakord.getApplicationManager().getWaiter().waitForEvent(ButtonInteractionEvent.class,
-                        event -> event.getUser().getIdLong() == slashEvent.getUser().getIdLong() &&
-                                event.getComponentId().startsWith(Button.DUMMY_PREFIX + "kv:search.playlist."),
+                        event -> event.getUser().getIdLong() == slashEvent.getUser().getIdLong() && event.getComponentId().startsWith(Button.DUMMY_PREFIX + "kv:search.playlist."),
                         1, TimeUnit.MINUTES)
-                .thenAccept(event -> {
-                    if (kvintakord.getCheckManager().check(event, CheckManager.Check.SELF_MUTED,
-                            CheckManager.Check.USER_CONNECTED, CheckManager.Check.USER_DEAFENED)) return;
-
+                .thenAccept(event -> kvintakord.getCheckManager().check(() -> {
                     switch (event.getComponentId()) {
-                        case Button.DUMMY_PREFIX + "kv:search.playlist.1" ->
-                                playTrackFromSearchPlaylist(event, playlist, 0);
-                        case Button.DUMMY_PREFIX + "kv:search.playlist.2" ->
-                                playTrackFromSearchPlaylist(event, playlist, 1);
-                        case Button.DUMMY_PREFIX + "kv:search.playlist.3" ->
-                                playTrackFromSearchPlaylist(event, playlist, 2);
-                        case Button.DUMMY_PREFIX + "kv:search.playlist.4" ->
-                                playTrackFromSearchPlaylist(event, playlist, 3);
-                        case Button.DUMMY_PREFIX + "kv:search.playlist.cancel" ->
-                                event.getHook().editOriginal("Okay then.")
-                                        .setActionRows(Collections.emptyList()).queue();
-                        default ->
-                                event.getHook().editOriginal("Unknown option.")
-                                        .setActionRows(Collections.emptyList()).queue();
+                        case Button.DUMMY_PREFIX + "kv:search.playlist.1" -> playTrackFromSearchPlaylist(event, playlist, 0);
+                        case Button.DUMMY_PREFIX + "kv:search.playlist.2" -> playTrackFromSearchPlaylist(event, playlist, 1);
+                        case Button.DUMMY_PREFIX + "kv:search.playlist.3" -> playTrackFromSearchPlaylist(event, playlist, 2);
+                        case Button.DUMMY_PREFIX + "kv:search.playlist.4" -> playTrackFromSearchPlaylist(event, playlist, 3);
+                        case Button.DUMMY_PREFIX + "kv:search.playlist.cancel" -> event.getHook().editOriginal("Okay then.").setActionRows(Collections.emptyList()).queue();
+                        default -> event.getHook().editOriginal("Unknown option.").setActionRows(Collections.emptyList()).queue();
                     }
-                })
+                }, event, CheckManager.Check.SELF_MUTED, CheckManager.Check.USER_CONNECTED, CheckManager.Check.USER_DEAFENED))
                 .exceptionally(throwable -> {
                     if (throwable instanceof TimeoutException)
-                        slashEvent.getHook().editOriginal("Timed out.")
-                                .setActionRows(Collections.emptyList()).queue();
+                        slashEvent.getHook().editOriginal("Timed out.").setActionRows(Collections.emptyList()).queue();
 
 
                     return null;

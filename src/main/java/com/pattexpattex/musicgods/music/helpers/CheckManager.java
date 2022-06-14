@@ -138,6 +138,13 @@ public class CheckManager {
             event.reply("You have insufficient permissions.").queue();
     }
     
+    /**
+     * @return {@code True} if the checks pass. {@code False} otherwise.
+     */
+    public boolean simpleCheck(Member member, Check... checks) {
+        return memberCheck(member, checks) == Check.OK;
+    }
+    
     private RestAction<InteractionHook> deferAnEvent(IReplyCallback event, boolean deferEdit) {
         if (deferEdit && event instanceof ButtonInteractionEvent bie)
             return bie.deferEdit();
@@ -164,53 +171,6 @@ public class CheckManager {
         }
         
         return true;
-    }
-    
-    /**
-     * @deprecated - Use {@link CheckManager#check(Runnable, IReplyCallback, Check...) check(Runnable, IReplyCallback, Check...).
-     */
-    @Deprecated(forRemoval = true)
-    public boolean check(IReplyCallback event, Check... checks) {
-        Check check = memberCheck(event.getMember(), checks);
-        if (check != Check.OK) {
-            event.reply(check.message).queue();
-            return true;
-        }
-        
-        if (event instanceof ButtonInteractionEvent bie)
-            bie.deferEdit().queue();
-        
-        return false;
-    }
-    
-    /**
-     * @deprecated - Use {@link CheckManager#deferredCheck(Runnable, IReplyCallback, boolean, Check...) deferredCheck(Runnable, IReplyCallback, boolean, Check...)}.
-     */
-    @Deprecated(forRemoval = true)
-    public boolean check(ButtonInteractionEvent event, Check... checks) {
-        Check check = memberCheck(event.getMember(), checks);
-        if (check != Check.OK) {
-            event.editMessage(check.message).setActionRows().setEmbeds().queue();
-            return true;
-        }
-
-        event.deferEdit().queue();
-        return false;
-    }
-    
-    /**
-     * @deprecated - Use {@link CheckManager#deferredCheck(Runnable, IReplyCallback, boolean, Check...) deferredCheck(Runnable, IReplyCallback, boolean, Check...)}.
-     */
-    @Deprecated(forRemoval = true)
-    public boolean checkAndReply(IReplyCallback event, Check... checks) {
-        Check check = memberCheck(event.getMember(), checks);
-        if (check != Check.OK) {
-            event.reply(check.message).queue();
-            return true;
-        }
-
-        event.deferReply().queue();
-        return false;
     }
     
     private Check memberCheck(Member member, Check... checks) {

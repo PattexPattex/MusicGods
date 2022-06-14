@@ -58,7 +58,10 @@ public class GuildConfig {
     }
 
     public void setDj(Role role) {
-        this.dj.set(role.getIdLong());
+        if (role == null)
+            this.dj.set(0);
+        else
+            this.dj.set(role.getIdLong());
         manager.write();
     }
 

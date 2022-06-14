@@ -2,19 +2,17 @@ package com.pattexpattex.musicgods.music.audio;
 
 import com.pattexpattex.musicgods.config.storage.GuildConfig;
 import com.pattexpattex.musicgods.music.Kvintakord;
-import com.pattexpattex.musicgods.util.FormatUtils;
 import com.pattexpattex.musicgods.util.dispatchers.MessageDispatcher;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -221,9 +219,17 @@ public class MusicScheduler extends AudioEventAdapter {
         if (track != null)
             operation.execute(track);
     }
+    
+    public @NotNull AudioTrack getCurrentTrack() {
+        return Objects.requireNonNull(player.getPlayingTrack(), "Nothing is currently playing");
+    }
 
     public void forCurrentTrackNullable(TrackOperation operation) {
         operation.execute(player.getPlayingTrack());
+    }
+    
+    public @Nullable AudioTrack getCurrentTrackNullable() {
+        return player.getPlayingTrack();
     }
 
     public void forTrackAt(TrackOperation operation, int position) {
@@ -280,8 +286,7 @@ public class MusicScheduler extends AudioEventAdapter {
     @Override
     public void onTrackStart(AudioPlayer player, AudioTrack track) {
         if (!retried.get())
-            messageDispatcher.sendMessage(String.format("Started playing **%s** (`%s`).", TrackMetadata.getName(track),
-                    FormatUtils.formatTimeFromMillis(track.getDuration())));
+            messageDispatcher.sendMessage(kvintakord.getHelper().formatTrackStartMessage(track));
 
         kvintakord.updateQueueMessage();
     }

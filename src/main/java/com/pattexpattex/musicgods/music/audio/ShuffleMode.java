@@ -28,4 +28,11 @@ public enum ShuffleMode {
 
         return OFF;
     }
+    
+    public static ShuffleMode fromString(String s) {
+        if ("shuffled".equals(s))
+            return ON;
+        
+        return OFF;
+    }
 }
