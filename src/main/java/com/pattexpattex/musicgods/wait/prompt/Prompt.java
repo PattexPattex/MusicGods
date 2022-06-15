@@ -95,10 +95,8 @@ public class Prompt {
                             
                             accepts.add(user);
                         
-                            if (accepts.size() >= reqAccepts) {
-                                hook.editOriginal(buildFinishedMessage(status)).queue();
-                                onAccept.accept(result);
-                            }
+                            if (accepts.size() >= reqAccepts)
+                                hook.editOriginal(buildFinishedMessage(status)).queue(s -> onAccept.accept(result));
                             else {
                                 event.editMessage(buildMessage(onReject != null, onCancel != null)).queue();
                                 waitForResponse();
@@ -113,10 +111,8 @@ public class Prompt {
                             
                             rejects.add(user);
                         
-                            if (rejects.size() >= reqRejects) {
-                                hook.editOriginal(buildFinishedMessage(status)).queue();
-                                onReject.accept(result);
-                            }
+                            if (rejects.size() >= reqRejects)
+                                hook.editOriginal(buildFinishedMessage(status)).queue(s -> onReject.accept(result));
                             else {
                                 event.editMessage(buildMessage(onReject != null, onCancel != null)).queue();
                                 waitForResponse();
@@ -129,19 +125,17 @@ public class Prompt {
                                 return;
                             }
                             
-                            hook.editOriginal(buildFinishedMessage(status)).queue();
-                            onCancel.accept(result);
+                            hook.editOriginal(buildFinishedMessage(status)).queue(s -> onCancel.accept(result));
                         }
                         default -> OtherUtils.getLog().error("uhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh... what?");
                     }
                 })
                 .exceptionally(throwable -> {
-                    if (throwable.getCause() instanceof TimeoutException) {
-                        hook.editOriginal(new MessageBuilder("Timed out. **|** " + prompt).build()).queue();
-                        
-                        if (onTimeout != null)
-                            onTimeout.accept(hook);
-                    }
+                    if (throwable.getCause() instanceof TimeoutException)
+                        hook.editOriginal(new MessageBuilder("Timed out. **|** " + prompt).build()).queue(s -> {
+                            if (onTimeout != null)
+                                onTimeout.accept(hook);
+                        });
                 
                     return null;
                 });

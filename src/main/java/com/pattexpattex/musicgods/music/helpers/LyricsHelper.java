@@ -3,7 +3,6 @@ package com.pattexpattex.musicgods.music.helpers;
 import com.jagrosh.jlyrics.Lyrics;
 import com.jagrosh.jlyrics.LyricsClient;
 import com.pattexpattex.musicgods.Bot;
-import com.pattexpattex.musicgods.music.Kvintakord;
 import com.pattexpattex.musicgods.music.audio.TrackMetadata;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.MessageBuilder;
@@ -28,12 +27,10 @@ public class LyricsHelper {
 
     private static final long TIMEOUT = 10000L;
 
-    private final Kvintakord kvintakord;
     private final LyricsClient client;
 
-    public LyricsHelper(Kvintakord kvintakord) {
-        this.kvintakord = kvintakord;
-        this.client = new LyricsClient(PROVIDER, kvintakord.getApplicationManager().getExecutorService());
+    public LyricsHelper() {
+        this.client = new LyricsClient(PROVIDER, Bot.getInstance().getApplicationManager().getExecutorService());
     }
 
     public Lyrics getLyrics(String identifier) {

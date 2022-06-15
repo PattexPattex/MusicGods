@@ -92,7 +92,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
 
         helper = new KvintakordHelper(this);
         checkManager = new CheckManager(this);
-        lyricsHelper = new LyricsHelper(this);
+        lyricsHelper = new LyricsHelper();
         new AloneInVoiceHandler(this);
         manager.addListener(new DeafenedListener());
 
