@@ -15,6 +15,7 @@ public class BotEmoji {
     public static final String NOTES = "🎶";
     public static final String DIVIDERS = "🗂️";
     public static final String RED_CIRCLE = "🔴";
+    public static final String CD = "💿";
 
     public static final String PAUSE = "⏸️";
     public static final String PLAY_PAUSE = "⏯️";

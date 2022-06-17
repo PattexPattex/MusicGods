@@ -166,7 +166,8 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
             }
         }, event);
     }
-
+    
+    // TODO: 14. 06. 2022 Implement Confirmation.java
     @SlashHandle(path = "search", description = "Searches all sources with a query.")
     public void search(SlashCommandInteractionEvent event, @SlashParameter(description = "Search query.") String identifier) {
         checkManager.deferredCheck(() -> playerManager.loadItemOrdered(this, helper.cleanIdentifier(identifier), new AudioLoadResultHandler() {

@@ -156,26 +156,26 @@ public class Prompt {
         if (isRejectable && isCancellable) {
             builder.setActionRows(
                     ActionRow.of(
-                            Button.dummy("prompt:yes." + id, null, BotEmoji.YES, ButtonStyle.SECONDARY, false),
+                            Button.dummy("prompt:yes." + id, null, BotEmoji.YES, ButtonStyle.SUCCESS, false),
                             Button.dummy("prompt:no." + id, null, BotEmoji.NO, ButtonStyle.SECONDARY, false),
-                            Button.dummy("prompt:cancel." + id, "Cancel", null, ButtonStyle.SECONDARY, false)));
+                            Button.dummy("prompt:cancel." + id, "Cancel", null, ButtonStyle.DANGER, false)));
         }
         else if (isRejectable) {
             builder.setActionRows(
                     ActionRow.of(
-                            Button.dummy("prompt:yes." + id, null, BotEmoji.YES, ButtonStyle.SECONDARY, false),
+                            Button.dummy("prompt:yes." + id, null, BotEmoji.YES, ButtonStyle.SUCCESS, false),
                             Button.dummy("prompt:no." + id, null, BotEmoji.NO, ButtonStyle.SECONDARY, false)));
         }
         else if (isCancellable) {
             builder.setActionRows(
                     ActionRow.of(
-                            Button.dummy("prompt:yes." + id, null, BotEmoji.YES, ButtonStyle.SECONDARY, false),
-                            Button.dummy("prompt:cancel." + id, "Cancel", null, ButtonStyle.SECONDARY, false)));
+                            Button.dummy("prompt:yes." + id, null, BotEmoji.YES, ButtonStyle.SUCCESS, false),
+                            Button.dummy("prompt:cancel." + id, "Cancel", null, ButtonStyle.DANGER, false)));
         }
         else {
             builder.setActionRows(
                     ActionRow.of(
-                            Button.dummy("prompt:yes." + id, null, BotEmoji.YES, ButtonStyle.SECONDARY, false)));
+                            Button.dummy("prompt:yes." + id, null, BotEmoji.YES, ButtonStyle.SUCCESS, false)));
         }
         
         return builder.build();
