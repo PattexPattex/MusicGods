@@ -286,7 +286,7 @@ public class MusicScheduler extends AudioEventAdapter {
     @Override
     public void onTrackStart(AudioPlayer player, AudioTrack track) {
         if (!retried.get())
-            messageDispatcher.sendMessage(kvintakord.getHelper().formatTrackStartMessage(track));
+            messageDispatcher.sendMessage(kvintakord.trackStartMessage(track));
 
         kvintakord.updateQueueMessage();
     }

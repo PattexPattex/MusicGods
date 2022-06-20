@@ -192,6 +192,10 @@ public class CheckManager {
                 case SAME_CHANNEL -> {
                     if (!Objects.equals(userState.getChannel(), selfState.getChannel())) failed.add(check);
                 }
+                case SAME_CHANNEL_WHILE_PLAYING -> {
+                    if (kvintakord.getScheduler().getCurrentTrackNullable() != null && !Objects.equals(userState.getChannel(), selfState.getChannel()))
+                        failed.add(check);
+                }
                 case SELF_CONNECTED -> {
                     if (!selfState.inAudioChannel()) failed.add(check);
                 }
@@ -210,8 +214,9 @@ public class CheckManager {
     }
     
     public enum Check {
-        USER_CONNECTED(5, "You are not connected to a voice channel."),
-        SELF_CONNECTED(4, "I am not connected to a voice channel."),
+        USER_CONNECTED(6, "You are not connected to a voice channel."),
+        SELF_CONNECTED(5, "I am not connected to a voice channel."),
+        SAME_CHANNEL_WHILE_PLAYING(4, "We are not in the same voice channel."),
         SAME_CHANNEL(3, "We are not in the same voice channel."),
         USER_DEAFENED(2, "You are deafened."),
         SELF_MUTED(1, "I am muted."),

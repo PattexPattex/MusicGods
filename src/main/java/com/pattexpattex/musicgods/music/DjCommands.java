@@ -56,8 +56,8 @@ public class DjCommands implements SlashInterface {
     @SlashHandle(path = "playfirst", description = "Puts a track from a Spotify/Youtube URL or a Youtube search query to the start of the queue.")
     @Permissions(self = { Permission.MESSAGE_SEND, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK })
     public void playfirst(SlashCommandInteractionEvent event, @SlashParameter(description = "URL/query.") String identifier) {
-        checkManager.fairCheck(() -> kvintakord.getHelper().addTrack(event, identifier, true),
-                String.format("Play **%s** next?", identifier), event, CheckManager.Check.USER_CONNECTED, CheckManager.Check.USER_DEAFENED, CheckManager.Check.SELF_MUTED);
+        checkManager.fairCheck(() -> kvintakord.addTrack(event, identifier, true),
+                String.format("Play **%s** next?", identifier), event, Kvintakord.PLAY_CHECKS);
     }
     
     @SlashHandle(path = "skip", description = "Skips the current track.")
@@ -157,7 +157,7 @@ public class DjCommands implements SlashInterface {
     public void restart(SlashCommandInteractionEvent event) {
         checkManager.fairCheck(() -> kvintakord.getScheduler().forCurrentTrack(track -> {
             track.setPosition(0);
-            event.getHook().editOriginal(kvintakord.getHelper().formatTrackStartMessage(track)).queue();
+            event.getHook().editOriginal(kvintakord.trackStartMessage(track)).queue();
         }), "Restart playback of the current track?", event);
     }
     

@@ -9,7 +9,6 @@ import com.pattexpattex.musicgods.annotations.slash.parameter.Choice;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Range;
 import com.pattexpattex.musicgods.annotations.slash.parameter.SlashParameter;
 import com.pattexpattex.musicgods.config.storage.GuildConfig;
-import com.pattexpattex.musicgods.exceptions.SpotifyException;
 import com.pattexpattex.musicgods.interfaces.BaseInterface;
 import com.pattexpattex.musicgods.interfaces.BaseInterfaceFactory;
 import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterface;
@@ -20,11 +19,17 @@ import com.pattexpattex.musicgods.music.audio.AudioPlayerSendHandler;
 import com.pattexpattex.musicgods.music.audio.LoopMode;
 import com.pattexpattex.musicgods.music.audio.MusicScheduler;
 import com.pattexpattex.musicgods.music.audio.TrackMetadata;
-import com.pattexpattex.musicgods.music.helpers.*;
+import com.pattexpattex.musicgods.music.helpers.CheckManager;
+import com.pattexpattex.musicgods.music.helpers.EqualizerManager;
+import com.pattexpattex.musicgods.music.helpers.LyricsHelper;
+import com.pattexpattex.musicgods.music.helpers.QueueManager;
 import com.pattexpattex.musicgods.music.spotify.SpotifyAudioSourceManager;
 import com.pattexpattex.musicgods.util.BotEmoji;
 import com.pattexpattex.musicgods.util.FormatUtils;
 import com.pattexpattex.musicgods.util.dispatchers.MessageDispatcher;
+import com.pattexpattex.musicgods.wait.confirmation.Confirmation;
+import com.pattexpattex.musicgods.wait.confirmation.ConfirmationStatus;
+import com.pattexpattex.musicgods.wait.confirmation.choice.ChoiceConfirmation;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -35,11 +40,13 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.TrackMarker;
+import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceGuildDeafenEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,14 +54,16 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
 
 import static com.pattexpattex.musicgods.music.Kvintakord.GROUP_ID;
 
 //@SuppressWarnings("unused")
 @Grouped(value = GROUP_ID, name = "Music", description = "Commands for controlling music.", emoji = BotEmoji.NOTES)
 public class Kvintakord implements ButtonInterface, SlashInterface {
-
+    
     public static final String GROUP_ID = "kvintakord";
+    public static final CheckManager.Check[] PLAY_CHECKS = { CheckManager.Check.USER_CONNECTED, CheckManager.Check.USER_DEAFENED, CheckManager.Check.SELF_MUTED, CheckManager.Check.SAME_CHANNEL_WHILE_PLAYING };
 
     private final ApplicationManager manager;
     private final Guild guild;
@@ -63,7 +72,6 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
 
     private final MessageDispatcher messageDispatcher;
     private final AtomicReference<TextChannel> outputChannel;
-    private final KvintakordHelper helper;
     private final CheckManager checkManager;
     private final LyricsHelper lyricsHelper;
 
@@ -90,7 +98,6 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
 
         scheduler = new MusicScheduler(player, messageDispatcher, config, this);
 
-        helper = new KvintakordHelper(this);
         checkManager = new CheckManager(this);
         lyricsHelper = new LyricsHelper();
         new AloneInVoiceHandler(this);
@@ -107,8 +114,8 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     public void play(SlashCommandInteractionEvent event, @SlashParameter(description = "URL/query.") String identifier) {
         checkManager.check(() -> {
             event.deferReply().queue();
-            helper.addTrack(event, identifier, false);
-        }, event, CheckManager.Check.USER_CONNECTED, CheckManager.Check.USER_DEAFENED, CheckManager.Check.SELF_MUTED);
+            addTrack(event, identifier, false);
+        }, event, PLAY_CHECKS);
     }
 
     @SlashHandle(path = "pause", description = "Pauses/resumes playback.")
@@ -167,38 +174,41 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
         }, event);
     }
     
-    // TODO: 14. 06. 2022 Implement Confirmation.java
     @SlashHandle(path = "search", description = "Searches all sources with a query.")
     public void search(SlashCommandInteractionEvent event, @SlashParameter(description = "Search query.") String identifier) {
-        checkManager.deferredCheck(() -> playerManager.loadItemOrdered(this, helper.cleanIdentifier(identifier), new AudioLoadResultHandler() {
+        checkManager.deferredCheck(() -> playerManager.loadItemOrdered(this, cleanIdentifier(identifier), new AudioLoadResultHandler() {
     
             @Override
             public void trackLoaded(AudioTrack track) {
-                TrackMetadata.buildMetadata(track);
-                event.getHook().editOriginal(String.format("Loaded **%s** (`%s`) from search. Play it now?",
-                                TrackMetadata.getName(track), FormatUtils.formatTimeFromMillis(track.getDuration())))
-                        .setActionRow(KvintakordHelper.searchTrackYesButton, KvintakordHelper.searchTrackNoButton).queue();
-        
-                helper.trackLoadedWaiter(track, event);
+                String prompt = String.format("Loaded **%s** (`%s`) from search. Play it now?",
+                        TrackMetadata.getName(track), FormatUtils.formatTimeFromMillis(track.getDuration()));
+    
+                new Confirmation.Builder(prompt, event, result -> {
+                    if (result.getStatus() == ConfirmationStatus.CONFIRMED) {
+                        result.getEvent().deferEdit().queue();
+                        addTrack(result.getEvent(), track, false);
+                    }
+                }).setTimeout(60)
+                        .setOnDeny(result -> {})
+                        .build();
             }
     
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
-                StringBuilder builder = new StringBuilder(
-                        String.format("Search results for **%s**: (select/cancel by clicking a button)", identifier));
-        
-                int i = 0;
-                for (AudioTrack track : playlist.getTracks()) {
-                    if (i >= 4) break;
-                    i++;
-                    TrackMetadata.buildMetadata(track);
-                    builder.append(String.format("\n> %d (`%s`) %s", i,
-                            FormatUtils.formatTimeFromMillis(track.getDuration()), TrackMetadata.getName(track)));
-                }
-        
-                event.getHook().editOriginal(builder.toString()).setActionRow(KvintakordHelper.getSearchPlaylistButtons(i)).queue();
-        
-                helper.playlistLoadedWaiter(playlist, event);
+                String prompt = String.format("Select a track from **%s**", playlist.getName());
+    
+                new ChoiceConfirmation.Builder(prompt, event, (result, i) -> addTrack(event, playlist.getTracks().get(i), false))
+                        .setTimeout(60)
+                        .setChoices(playlist.getTracks()
+                                .stream()
+                                .limit(4)
+                                .map(track -> String.format(
+                                        "(`%s`) **%s**",
+                                        FormatUtils.formatTimeFromMillis(track.getDuration()),
+                                        TrackMetadata.getName(track)))
+                                .toList())
+                        .setOnCancel(result -> {})
+                        .build();
             }
     
             @Override
@@ -208,14 +218,9 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     
             @Override
             public void loadFailed(FriendlyException exception) {
-                if (exception.getCause() instanceof SpotifyException se && se.isFromLoader)
-                    event.getHook().editOriginal(se.getMessage()).queue();
-                else
-                    event.getHook().editOriginal(String.format("Failed with an exception: `%s`",
-                            exception.getMessage())).queue();
+                event.getHook().editOriginal(String.format("Failed with an exception: `%s`.", exception.getMessage())).queue();
             }
-        }),
-                event, false, CheckManager.Check.SELF_MUTED, CheckManager.Check.USER_CONNECTED, CheckManager.Check.USER_DEAFENED);
+        }), event, false, PLAY_CHECKS);
     }
 
     @SlashHandle(path = "marker/set", description = "Sets a marker on the current track.", baseDescription = "Commands for custom track markers.")
@@ -310,6 +315,87 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     public void setOutputChannel(TextChannel channel) {
         outputChannel.set(channel);
     }
+    
+    public String trackStartMessage(AudioTrack track) {
+        return String.format("Started playing **%s** (`%s`).", TrackMetadata.getName(track), FormatUtils.formatTimeFromMillis(track.getDuration()));
+    }
+    
+    public String trackLoadMessage(AudioTrack track) {
+        return String.format("Loaded **%s** (`%s`).", TrackMetadata.getName(track), FormatUtils.formatTimeFromMillis(track.getDuration()));
+    }
+    
+    public String cleanIdentifier(String identifier) {
+        Matcher matcher = FormatUtils.HTTP_PATTERN.matcher(identifier);
+        
+        if (matcher.matches()) {
+            return identifier.replaceAll("(^[<|*_`]{0,3})|([>|*_`]{0,3}$)", "");
+        }
+        
+        return "ytsearch: " + identifier.replaceAll("(^[<|*_`]{0,3})|([>|*_`]{0,3}$)", "");
+    }
+    
+    public void addTrack(IReplyCallback callback, String identifier, boolean first) {
+        setOutputChannel(callback.getTextChannel());
+        AudioChannel channel = callback.getMember().getVoiceState().getChannel();
+        
+        playerManager.loadItemOrdered(this, cleanIdentifier(identifier), new AudioLoadResultHandler() {
+            
+            @Override
+            public void trackLoaded(AudioTrack track) {
+                addTrack(callback, track, first);
+            }
+            
+            @Override
+            public void playlistLoaded(AudioPlaylist playlist) {
+                List<AudioTrack> tracks = playlist.getTracks();
+                connectToVoiceChannel(channel);
+                
+                if (playlist.isSearchResult()) {
+                    AudioTrack track = playlist.getSelectedTrack();
+                    
+                    if (track == null)
+                        track = tracks.get(0);
+                    
+                    addTrack(callback, track, first);
+                }
+                else {
+                    callback.getHook().editOriginal(String.format("Loaded playlist **%s** (%d tracks).",
+                            playlist.getName(), tracks.size())).queue();
+                    
+                    for (AudioTrack track : tracks) {
+                        TrackMetadata.buildMetadata(track);
+                    }
+                    
+                    scheduler.addToQueue(tracks);
+                }
+            }
+            
+            @Override
+            public void noMatches() {
+                callback.getHook().editOriginal(String.format("No results for **%s**.", identifier)).queue();
+            }
+            
+            @Override
+            public void loadFailed(FriendlyException exception) {
+                callback.getHook().editOriginal(String.format("Failed with an exception: `%s`.", exception.getMessage())).queue();
+            }
+        });
+    }
+    
+    public void addTrack(IReplyCallback callback, AudioTrack track, boolean first) {
+        setOutputChannel(callback.getTextChannel());
+        AudioChannel channel = callback.getMember().getVoiceState().getChannel();
+        
+        TrackMetadata.buildMetadata(track);
+        
+        callback.getHook().editOriginal(new MessageBuilder(trackLoadMessage(track)).build()).queue();
+        connectToVoiceChannel(channel);
+        
+        if (first)
+            scheduler.addToQueueFirst(track);
+        else
+            scheduler.addToQueue(track);
+    }
 
     public Guild getGuild() {
         return guild;
@@ -338,72 +424,69 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     public LyricsHelper getLyricsHelper() {
         return lyricsHelper;
     }
-
-    public KvintakordHelper getHelper() {
-        return helper;
-    }
     
     public GuildConfig getConfig() {
         return config;
     }
     
-    private class GlobalDispatcher implements MessageDispatcher {
-
-        @Override
-        public void sendMessage(String message, Consumer<Message> success, Consumer<Throwable> failure) {
-            TextChannel channel = outputChannel.get();
-
-            if (channel == null) return;
-            channel.sendMessage(message).queue(success, failure);
-        }
-
-        @Override
-        public void sendMessage(String message) {
-            TextChannel channel = outputChannel.get();
-
-            if (channel == null) return;
-            channel.sendMessage(message).queue();
-        }
-
-        @Override
-        public void sendMessage(Message message, Consumer<Message> success, Consumer<Throwable> failure) {
-            TextChannel channel = outputChannel.get();
-
-            if (channel == null) return;
-            channel.sendMessage(message).queue(success, failure);
-        }
-
-        @Override
-        public void sendSuccess() {
-            TextChannel channel = outputChannel.get();
-
-            if (channel == null) return;
-            channel.sendMessage(BotEmoji.YES).queue();
-        }
-
-        @Override
-        public void sendFailure() {
-            TextChannel channel = outputChannel.get();
-
-            if (channel == null) return;
-            channel.sendMessage(BotEmoji.NO).queue();
-        }
-
-    }
-
     @Override
     public void shutdown() {
         destroy();
     }
-
+    
     @Override
     public void destroy() {
         stop(false);
         player.destroy();
-        guild.getAudioManager().setSendingHandler(null);
+        //guild.getAudioManager().setSendingHandler(null);
     }
-
+    
+    private class GlobalDispatcher implements MessageDispatcher {
+        
+        @Override
+        public void sendMessage(String message, Consumer<Message> success, Consumer<Throwable> failure) {
+            TextChannel channel = outputChannel.get();
+            
+            if (channel == null) return;
+            channel.sendMessage(message).queue(success, failure);
+        }
+        
+        @Override
+        public void sendMessage(String message) {
+            TextChannel channel = outputChannel.get();
+            
+            if (channel == null) return;
+            channel.sendMessage(message).queue();
+        }
+        
+        @Override
+        public void sendMessage(Message message, Consumer<Message> success, Consumer<Throwable> failure) {
+            TextChannel channel = outputChannel.get();
+            
+            if (channel == null) return;
+            channel.sendMessage(message).queue(success, failure);
+        }
+        
+        @Override
+        public void sendSuccess() {
+            TextChannel channel = outputChannel.get();
+            
+            if (channel == null) return;
+            channel.sendMessage(BotEmoji.YES).queue();
+        }
+        
+        @Override
+        public void sendFailure() {
+            TextChannel channel = outputChannel.get();
+            
+            if (channel == null) return;
+            channel.sendMessage(BotEmoji.NO).queue();
+        }
+        
+    }
+    
     public static class Factory implements ButtonInterfaceFactory<Kvintakord>, SlashInterfaceFactory<Kvintakord> {
+    
 
         @Override
         public Class<Kvintakord> getControllerClass() {
@@ -423,8 +506,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
 
     private class DeafenedListener extends ListenerAdapter {
 
-        private DeafenedListener() {
-        }
+        private DeafenedListener() {}
 
         @Override
         public void onGuildVoiceGuildDeafen(@NotNull GuildVoiceGuildDeafenEvent event) {

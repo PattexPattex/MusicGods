@@ -20,6 +20,8 @@ public class FormatUtils {
     public static final String BLOCK = "█";
     public static final String CODEBLOCK = "```";
     public static final String CODE = "`";
+    
+    public static final Pattern HTTP_PATTERN = Pattern.compile("^([<|*_`]{0,3})(http|https)://[a-zA-Z\\d\\-.]+\\.[a-zA-Z]{2,6}(/\\S*)?([>|*_`]{0,3})$");
 
     private static final String AVATAR = "https://imgur.com/fMEiH2k.png";
     private static final Color COLOR = new Color(0xDFE393);

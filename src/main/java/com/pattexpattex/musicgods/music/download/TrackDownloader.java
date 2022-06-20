@@ -147,7 +147,7 @@ public class TrackDownloader {
 
         String[] urls = new String[2];
         try {
-            manager.loadItemOrdered(hook, kvintakord.getHelper().cleanIdentifier(identifier), new FunctionalResultHandler(
+            manager.loadItemOrdered(hook, kvintakord.cleanIdentifier(identifier), new FunctionalResultHandler(
                     track -> parseYoutubeUrl(track, urls),
                     playlist -> parseYoutubeUrl(playlist.getTracks().get(0), urls),
                     () -> hook.editOriginal(String.format("No results for **%s**.", identifier)).queue(),
