@@ -94,6 +94,8 @@ public class Confirmation {
                             if (onTimeout != null)
                                 onTimeout.accept(hook);
                         });
+                    else
+                        OtherUtils.getLog().error("Something broke in a confirmation", throwable);
                     
                     return null;
                 });
@@ -165,7 +167,7 @@ public class Confirmation {
         
         public Builder(String prompt, IReplyCallback event, Consumer<ConfirmationResult> onConfirm) {
             Checks.notBlank(prompt, "Prompt");
-            Objects.requireNonNull(event, "SlashCommandInteractionEvent cannot be null");
+            Objects.requireNonNull(event, "Event cannot be null");
             Objects.requireNonNull(onConfirm, "OnConfirm cannot be null");
             
             this.prompt = prompt;
