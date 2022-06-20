@@ -46,12 +46,14 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceGuildDeafenEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -260,28 +262,36 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     @SlashHandle(path = "lyrics", description = "Gets the lyrics of the current/given track.")
     public void lyrics(SlashCommandInteractionEvent event, @SlashParameter(description = "Track to search the lyrics for.", required = false) String identifier) {
         if (identifier == null) {
-            checkManager.deferredCheck(() -> scheduler.forCurrentTrack(track -> {
-                Queue<Message> messages = lyricsHelper.buildLyricsMessage(lyricsHelper.getLyrics(lyricsHelper.buildSearchQuery(track)));
-    
-                event.getHook().editOriginal(messages.remove()).queue(message -> {
-                    for (Message msg : messages)
-                        message.getChannel().sendMessage(msg).queue();
-                });
-            }), event, false, CheckManager.Check.PLAYING);
+            checkManager.deferredCheck(() -> scheduler.forCurrentTrack(track -> retrieveLyrics(event.getHook(), lyricsHelper.buildSearchQuery(track))),
+                    event, false, CheckManager.Check.PLAYING);
         }
         else {
             event.deferReply().queue();
-            Queue<Message> messages = lyricsHelper.buildLyricsMessage(lyricsHelper.getLyrics(identifier));
-
-            event.getHook().editOriginal(messages.remove()).queue(message -> {
-                for (Message msg : messages)
-                    message.getChannel().sendMessage(msg).queue();
-            });
+            retrieveLyrics(event.getHook(), identifier);
         }
     }
     
 
     /* ---- Other ---- */
+    
+    public void retrieveLyrics(InteractionHook hook, String query) {
+        lyricsHelper.getLyricsAsync(query)
+                .thenAccept(lyrics -> {
+                    Queue<Message> messages = lyricsHelper.buildLyricsMessage(lyrics);
+    
+                    hook.editOriginal(messages.remove()).queue(message -> {
+                        for (Message msg : messages)
+                            message.getChannel().sendMessage(msg).queue();
+                    });
+                })
+                .exceptionally(th -> {
+                    if (th instanceof TimeoutException te)
+                        hook.editOriginal("Lyrics search timed out.").queue();
+                    else
+                        hook.editOriginal("Something went wrong.").queue();
+                    return null;
+                });
+    }
 
     public void stop(boolean withMessage) {
         EqualizerManager eqManager = getSubInterface(EqualizerManager.class);

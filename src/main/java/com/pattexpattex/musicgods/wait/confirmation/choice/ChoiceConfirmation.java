@@ -251,16 +251,16 @@ public class ChoiceConfirmation {
             choices.addAll(Arrays.asList(other));
             return this;
         }
-        
+    
+        public Builder addChoices(Collection<String> choices) {
+            this.choices.addAll(choices);
+            return this;
+        }
+    
         public Builder setChoices(String choice, String... other) {
             choices.clear();
             choices.add(choice);
             choices.addAll(Arrays.asList(other));
-            return this;
-        }
-    
-        public Builder addChoices(Collection<String> choices) {
-            this.choices.addAll(choices);
             return this;
         }
     

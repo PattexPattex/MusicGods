@@ -20,7 +20,6 @@ import javax.script.ScriptEngineManager;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-// TODO: 26. 05. 2022 Eval
 public class EvalCommand implements SlashInterface {
 
     private static final AtomicLong COUNTER = new AtomicLong();

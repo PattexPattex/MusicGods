@@ -21,9 +21,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 
 import javax.annotation.Nullable;
-import java.util.Queue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -132,27 +130,7 @@ public class QueueManager implements ButtonInterface, Runnable {
     public void lyricsButton(ButtonInteractionEvent event) {
         checkManager.deferredCheck(() -> {
             setQueueBox(event.getHook());
-    
-            LyricsHelper helper = kvintakord.getLyricsHelper();
-    
-            kvintakord.getScheduler().forCurrentTrack(track -> // TODO: 14. 06. 2022 Why is this non-blocking and the one in Kvintakord is blocking???
-                    helper.getLyricsAsync(helper.buildSearchQuery(track))
-                            .thenAccept(lyrics -> {
-                                Queue<Message> messages = helper.buildLyricsMessage(lyrics);
-                        
-                                event.getHook().editOriginal(messages.remove()).queue(message -> {
-                                    for (Message msg : messages)
-                                        message.getChannel().sendMessage(msg).queue();
-                                });
-                            })
-                            .exceptionally(th -> {
-                                if (th instanceof TimeoutException te)
-                                    event.getHook().editOriginal("Lyrics search timed out.").queue();
-                                else
-                                    event.getHook().editOriginal("Something went wrong.").queue();
-                                return null;
-                            })
-            );
+            kvintakord.getScheduler().forCurrentTrack(track -> kvintakord.retrieveLyrics(event.getHook(), kvintakord.getLyricsHelper().buildSearchQuery(track)));
         }, event, false);
     }
 
