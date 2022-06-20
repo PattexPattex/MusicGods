@@ -61,7 +61,9 @@ public class ChoiceConfirmation {
         this.prompt = prompt;
         this.requester = event.getUser();
         
-        this.predicate = ev -> true;
+        this.predicate = ev -> ev.getComponentId().contains(Button.DUMMY_PREFIX + "confirmation.choice:")
+                && ev.getComponentId().contains(String.valueOf(id))
+                && ev.getUser().getIdLong() == requester.getIdLong();
         
         event.reply(buildMessage()).queue(null, f -> event.getHook().editOriginal(buildMessage()).queue());
         this.hook = event.getHook();
@@ -75,7 +77,10 @@ public class ChoiceConfirmation {
                     ChoiceConfirmationResult result = new ChoiceConfirmationResult(event, status, this);
                     
                     if (status == ChoiceConfirmationStatus.CANCELLED)
-                        hook.editOriginal(buildFinishedMessage(status)).queue(s -> onCancel.accept(result));
+                        hook.editOriginal(buildFinishedMessage(status)).queue(s -> {
+                            if (onCancel != null)
+                                onCancel.accept(result);
+                        });
                     else
                         hook.editOriginal(buildFinishedMessage(status)).queue(s -> onConfirm.accept(result, status.getId()));
                 })
@@ -130,14 +135,14 @@ public class ChoiceConfirmation {
     
     private ActionRow buildRow() {
         int size = choices.length;
-        boolean cancel = onCancel != null;
         
         List<ItemComponent> list = new ArrayList<>();
         
         for (int i = 0; i < size; i++)
             list.add(Button.dummy(String.format("confirmation.choice:%d.%d", i, id), null, getEmojiFromInt(i), ButtonStyle.PRIMARY, false));
         
-        list.add(Button.dummy("confirmation.choice:cancel." + id, "Cancel", null, ButtonStyle.DANGER, false));
+        if (onCancel != null)
+            list.add(Button.dummy("confirmation.choice:cancel." + id, "Cancel", null, ButtonStyle.DANGER, false));
         
         return ActionRow.of(list);
     }
@@ -183,6 +188,7 @@ public class ChoiceConfirmation {
         return submittedAt;
     }
     
+    @SuppressWarnings("unused")
     public static class Builder {
         
         private final IReplyCallback event;

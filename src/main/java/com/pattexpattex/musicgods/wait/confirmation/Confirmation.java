@@ -12,20 +12,18 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.internal.utils.Checks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-// TODO: 15. 06. 2022 Inconsistency between Confirmation and Prompt
 public class Confirmation {
     
     private static final Random RANDOM = Bot.getInstance().getRandom();
@@ -107,12 +105,17 @@ public class Confirmation {
         MessageBuilder builder = new MessageBuilder();
         
         builder.append(prompt);
+        List<ItemComponent> list = new LinkedList<>();
         
-        builder.setActionRows(
-                ActionRow.of(
-                        Button.dummy("confirmation:yes." + id, null, BotEmoji.YES, ButtonStyle.SUCCESS, false),
-                        Button.dummy("confirmation:no." + id, null, BotEmoji.NO, ButtonStyle.SECONDARY, false),
-                        Button.dummy("confirmation:cancel." + id, "Cancel", null, ButtonStyle.DANGER, false)));
+        list.add(Button.dummy("confirmation:yes." + id, null, BotEmoji.YES, ButtonStyle.SUCCESS, false));
+        
+        if (onDeny != null)
+            list.add(Button.dummy("confirmation:no." + id, null, BotEmoji.NO, ButtonStyle.SECONDARY, false));
+        
+        if (onCancel != null)
+            list.add(Button.dummy("confirmation:cancel." + id, "Cancel", null, ButtonStyle.DANGER, false));
+        
+        builder.setActionRows(ActionRow.of(list));
         
         return builder.build();
     }
@@ -158,6 +161,7 @@ public class Confirmation {
         return requester;
     }
     
+    @SuppressWarnings("unused")
     public static class Builder {
         
         private final IReplyCallback event;

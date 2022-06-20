@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.internal.utils.Checks;
 
@@ -74,8 +75,7 @@ public class Prompt {
                 && !accepts.contains(ev.getUser())
                 && !rejects.contains(ev.getUser());
         
-        Message msg = buildMessage(onReject != null, onCancel != null);
-        event.reply(msg).queue(null, f -> event.getHook().editOriginal(msg).queue());
+        event.reply(buildMessage()).queue(null, f -> event.getHook().editOriginal(buildMessage()).queue());
         this.hook = event.getHook();
         
         this.submittedAt = OtherUtils.epoch();
@@ -101,7 +101,7 @@ public class Prompt {
                             if (accepts.size() >= reqAccepts)
                                 hook.editOriginal(buildFinishedMessage(status)).queue(s -> onAccept.accept(result));
                             else {
-                                event.editMessage(buildMessage(onReject != null, onCancel != null)).queue();
+                                event.editMessage(buildMessage()).queue();
                                 waitForResponse();
                             }
                         }
@@ -117,7 +117,7 @@ public class Prompt {
                             if (rejects.size() >= reqRejects)
                                 hook.editOriginal(buildFinishedMessage(status)).queue(s -> onReject.accept(result));
                             else {
-                                event.editMessage(buildMessage(onReject != null, onCancel != null)).queue();
+                                event.editMessage(buildMessage()).queue();
                                 waitForResponse();
                             }
                         }
@@ -152,36 +152,22 @@ public class Prompt {
         return (time < 0 ? -1 : time);
     }
     
-    private Message buildMessage(boolean isRejectable, boolean isCancellable) {
+    private Message buildMessage() {
         MessageBuilder builder = new MessageBuilder();
-        builder.append(prompt)
-                .append(" ")
-                .append(buildMessageSuffix());
         
-        if (isRejectable && isCancellable) {
-            builder.setActionRows(
-                    ActionRow.of(
-                            Button.dummy("prompt:yes." + id, null, BotEmoji.YES, ButtonStyle.SUCCESS, false),
-                            Button.dummy("prompt:no." + id, null, BotEmoji.NO, ButtonStyle.SECONDARY, false),
-                            Button.dummy("prompt:cancel." + id, "Cancel", null, ButtonStyle.DANGER, false)));
-        }
-        else if (isRejectable) {
-            builder.setActionRows(
-                    ActionRow.of(
-                            Button.dummy("prompt:yes." + id, null, BotEmoji.YES, ButtonStyle.SUCCESS, false),
-                            Button.dummy("prompt:no." + id, null, BotEmoji.NO, ButtonStyle.SECONDARY, false)));
-        }
-        else if (isCancellable) {
-            builder.setActionRows(
-                    ActionRow.of(
-                            Button.dummy("prompt:yes." + id, null, BotEmoji.YES, ButtonStyle.SUCCESS, false),
-                            Button.dummy("prompt:cancel." + id, "Cancel", null, ButtonStyle.DANGER, false)));
-        }
-        else {
-            builder.setActionRows(
-                    ActionRow.of(
-                            Button.dummy("prompt:yes." + id, null, BotEmoji.YES, ButtonStyle.SUCCESS, false)));
-        }
+        builder.append(prompt).append(" ").append(buildMessageSuffix());
+        
+        List<ItemComponent> list = new LinkedList<>();
+        
+        list.add(Button.dummy("prompt:yes." + id, null, BotEmoji.YES, ButtonStyle.SUCCESS, false));
+        
+        if (onReject != null)
+            list.add(Button.dummy("prompt:no." + id, null, BotEmoji.NO, ButtonStyle.SECONDARY, false));
+        
+        if (onCancel != null)
+            list.add(Button.dummy("prompt:cancel." + id, "Cancel", null, ButtonStyle.DANGER, false));
+        
+        builder.setActionRows(ActionRow.of(list));
         
         return builder.build();
     }
@@ -247,6 +233,7 @@ public class Prompt {
     
     /* ---- Builder ---- */
     
+    @SuppressWarnings("unused")
     public static class Builder {
         
         private final IReplyCallback event;
