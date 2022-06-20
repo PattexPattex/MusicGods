@@ -63,7 +63,8 @@ public class ChoiceConfirmation {
         
         this.predicate = ev -> true;
         
-        this.hook = event.reply(buildMessage()).complete();
+        event.reply(buildMessage()).queue(null, f -> event.getHook().editOriginal(buildMessage()).queue());
+        this.hook = event.getHook();
         this.submittedAt = OtherUtils.epoch();
     }
     

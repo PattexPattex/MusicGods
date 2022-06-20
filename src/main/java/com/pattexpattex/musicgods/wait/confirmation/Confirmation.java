@@ -52,20 +52,22 @@ public class Confirmation {
         
         this.id = RANDOM.nextLong(Long.MAX_VALUE);
         this.timeoutSeconds = timeoutSeconds;
-        
+    
         this.onConfirm = onConfirm;
         this.onDeny = onDeny;
         this.onCancel = onCancel;
         this.onTimeout = onTimeout;
-        
+    
         this.prompt = prompt;
         this.requester = event.getUser();
-        
+    
         this.predicate = ev -> ev.getComponentId().contains(Button.DUMMY_PREFIX + "confirmation:")
                 && ev.getComponentId().contains(String.valueOf(id))
                 && ev.getUser().getIdLong() == requester.getIdLong();
+    
+        event.reply(buildMessage()).queue(null, f -> event.getHook().editOriginal(buildMessage()).queue());
+        this.hook = event.getHook();
         
-        this.hook = event.reply(buildMessage()).complete();
         this.submittedAt = OtherUtils.epoch();
     }
     

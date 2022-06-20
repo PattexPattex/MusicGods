@@ -74,7 +74,10 @@ public class Prompt {
                 && !accepts.contains(ev.getUser())
                 && !rejects.contains(ev.getUser());
         
-        this.hook = event.reply(buildMessage(onReject != null, onCancel != null)).complete();
+        Message msg = buildMessage(onReject != null, onCancel != null);
+        event.reply(msg).queue(null, f -> event.getHook().editOriginal(msg).queue());
+        this.hook = event.getHook();
+        
         this.submittedAt = OtherUtils.epoch();
     }
     
