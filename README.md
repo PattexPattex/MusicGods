@@ -1,7 +1,7 @@
 # MusicGods
 
 [![CodeFactor](https://www.codefactor.io/repository/github/pattexpattex/musicgods/badge?style=flat-square)](https://www.codefactor.io/repository/github/pattexpattex/musicgods)
-![Lines of code](https://img.shields.io/tokei/lines/github/PattexPattex/MusicGods?label=lines%20of%20code&style=flat-square)
+[![Lines of code](https://img.shields.io/tokei/lines/github/PattexPattex/MusicGods?label=lines%20of%20code&style=flat-square)](https://github.com/PattexPattex/MusicGods/)
 [![License](https://img.shields.io/github/license/PattexPattex/MusicGods?style=flat-square)](https://github.com/PattexPattex/MusicGods/blob/master/LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/PattexPattex/MusicGods?include_prereleases&style=flat-square)](https://github.com/PattexPattex/MusicGods/releases/latest)
 [![Issues](https://img.shields.io/github/issues/PattexPattex/MusicGods?style=flat-square)](https://github.com/PattexPattex/MusicGods/issues)
@@ -18,8 +18,6 @@ Some of its features include:
 - Works purely with slash commands
 
 ...and more!
-
-**The bot is currently still in alpha and is in active development!**
  
 This project heavily depends on the [JDA](https://github.com/DV8FromTheWorld/JDA) and [Lavaplayer](https://github.com/Walkyst/lavaplayer-fork) libraries and was inspired by [JMusicBot](https://github.com/jagrosh/MusicBot).
 
