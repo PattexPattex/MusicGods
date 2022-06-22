@@ -120,13 +120,18 @@ public class CheckManager {
     }
     
     /**
-     * The action will only be executed, if the member has the DJ role and the checks pass.
+     * The action will only be executed if the member has the DJ role and the checks pass.
      */
     public void djCheck(Runnable action, IReplyCallback event, boolean deferEdit, Check... checks) {
         if (!baseCheck(event, checks)) return;
         
         Member member = event.getMember();
         Role role = kvintakord.getConfig().getDj();
+        
+        if (role == null) {
+            deferAnEvent(event, deferEdit).queue(s -> action.run());
+            return;
+        }
         
         boolean isDj = member.getRoles()
                 .stream()
