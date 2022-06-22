@@ -23,9 +23,7 @@ public class SystemCommands implements SlashInterface {
     @SlashHandle(path = "system/ping", description = "Checks my ping.", baseDescription = "System commands.")
     public void ping(SlashCommandInteractionEvent event) {
         long ping = System.currentTimeMillis();
-        event.deferReply().complete();
-        event.getHook().editOriginal(String.format("My ping is: %dms | Gateway ping: %dms",
-                System.currentTimeMillis() - ping, event.getJDA().getGatewayPing())).queue();
+        event.deferReply().queue(h -> h.editOriginal(String.format("My ping is: %dms **|** Gateway ping: %dms", System.currentTimeMillis() - ping, event.getJDA().getGatewayPing())).queue());
     }
 
     @SlashHandle(path = "system/shutdown", description = "Safely shuts down this bot.")
@@ -38,7 +36,6 @@ public class SystemCommands implements SlashInterface {
 
     //@SlashHandle(path = "system/test", description = "Used for testing.")
     public void test(SlashCommandInteractionEvent event) {
-        event.reply("Please stop.").setEphemeral(true).queue();
     }
 
     @SlashHandle(path = "system/version", description = "Get versions of used libraries.")

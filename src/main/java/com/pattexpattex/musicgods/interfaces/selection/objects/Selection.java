@@ -1,6 +1,6 @@
 package com.pattexpattex.musicgods.interfaces.selection.objects;
 
-import com.pattexpattex.musicgods.annotations.SelectionHandle;
+import com.pattexpattex.musicgods.annotations.selection.SelectionHandle;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;

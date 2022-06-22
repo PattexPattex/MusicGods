@@ -1,4 +1,4 @@
-package com.pattexpattex.musicgods.annotations;
+package com.pattexpattex.musicgods.annotations.selection;
 
 import java.lang.annotation.*;
 

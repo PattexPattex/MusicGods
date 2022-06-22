@@ -7,6 +7,8 @@ import com.pattexpattex.musicgods.exceptions.WrongArgumentException;
 import com.pattexpattex.musicgods.interfaces.InterfaceManagerConnector;
 import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterface;
 import com.pattexpattex.musicgods.interfaces.button.objects.ButtonResponseHandler;
+import com.pattexpattex.musicgods.interfaces.modal.objects.ModalInterface;
+import com.pattexpattex.musicgods.interfaces.modal.objects.ModalResponseHandler;
 import com.pattexpattex.musicgods.interfaces.selection.objects.SelectionInterface;
 import com.pattexpattex.musicgods.interfaces.selection.objects.SelectionResponseHandler;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterface;
@@ -19,6 +21,7 @@ import com.pattexpattex.musicgods.util.FormatUtils;
 import com.pattexpattex.musicgods.util.OtherUtils;
 import com.pattexpattex.musicgods.util.dispatchers.InteractionMessageDispatcher;
 import com.pattexpattex.musicgods.util.dispatchers.impl.ButtonMessageDispatcherImpl;
+import com.pattexpattex.musicgods.util.dispatchers.impl.ModalMessageDispatcherImpl;
 import com.pattexpattex.musicgods.util.dispatchers.impl.SelectionMessageDispatcherImpl;
 import com.pattexpattex.musicgods.util.dispatchers.impl.SlashMessageDispatcherImpl;
 import com.pattexpattex.musicgods.wait.Waiter;
@@ -32,6 +35,7 @@ import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
@@ -165,7 +169,6 @@ public class ApplicationManager extends ListenerAdapter {
             @Override
             public void exception(SlashCommandInteractionEvent event, SlashPath path, Throwable throwable) {
                 messageDispatcher.sendMessage(String.format("Command threw an exception: %s", throwable));
-
                 log.error("Command ({}) threw an exception", path, throwable);
             }
         });
@@ -189,9 +192,7 @@ public class ApplicationManager extends ListenerAdapter {
 
             @Override
             public void buttonException(ButtonInteractionEvent event, String identifier, Throwable throwable) {
-                messageDispatcher.sendMessage(String.format("Button threw an exception: `%s: %s`",
-                        throwable.getClass().getSimpleName(), throwable.getMessage()));
-
+                messageDispatcher.sendMessage(String.format("Button threw an exception: %s", throwable));
                 log.error("Button ({}) threw an exception", identifier, throwable);
             }
         });
@@ -231,12 +232,34 @@ public class ApplicationManager extends ListenerAdapter {
             @Override
             public void exception(SelectMenuInteractionEvent event, String identifier, Throwable throwable) {
                 messageDispatcher.sendMessage(String.format("Selection menu threw an exception: %s", throwable));
-
                 log.error("Selection menu ({}) threw an exception", identifier, throwable);
             }
         });
     }
-
+    
+    @Override
+    public void onModalInteraction(@NotNull ModalInteractionEvent event) {
+        InteractionMessageDispatcher messageDispatcher = new ModalMessageDispatcherImpl(event);
+        Member member = event.getMember();
+        
+        if (event.getGuild() == null || member == null || member.getUser().isBot()) return;
+        
+        GuildContext context = getGuildContext(event.getGuild());
+        
+        interfaceManager.getModalManager().dispatch(context.filter(ModalInterface.class), event, new ModalResponseHandler() {
+            @Override
+            public void notFound(ModalInteractionEvent event, String identifier) {
+                messageDispatcher.sendMessage("This is an unknown / unregistered modal.");
+            }
+    
+            @Override
+            public void modalException(ModalInteractionEvent event, String identifier, Throwable throwable) {
+                messageDispatcher.sendMessage(String.format("Modal threw an exception: %s", throwable));
+                log.error("Modal ({}) threw an exception", identifier, throwable);
+            }
+        });
+    }
+    
     /* ---- Other listeners ---- */
 
     @Override

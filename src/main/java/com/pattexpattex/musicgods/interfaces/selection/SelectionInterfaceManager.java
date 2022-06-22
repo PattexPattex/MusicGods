@@ -1,13 +1,10 @@
 package com.pattexpattex.musicgods.interfaces.selection;
 
 import com.pattexpattex.musicgods.annotations.Permissions;
-import com.pattexpattex.musicgods.annotations.SelectionHandle;
-import com.pattexpattex.musicgods.interfaces.BaseInterface;
-import com.pattexpattex.musicgods.interfaces.BaseInterfaceFactory;
+import com.pattexpattex.musicgods.annotations.selection.SelectionHandle;
 import com.pattexpattex.musicgods.interfaces.InterfaceManagerConnector;
 import com.pattexpattex.musicgods.interfaces.selection.objects.Selection;
 import com.pattexpattex.musicgods.interfaces.selection.objects.SelectionInterface;
-import com.pattexpattex.musicgods.interfaces.selection.objects.SelectionInterfaceFactory;
 import com.pattexpattex.musicgods.interfaces.selection.objects.SelectionResponseHandler;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.GuildChannel;

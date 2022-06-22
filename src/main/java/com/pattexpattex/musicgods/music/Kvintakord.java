@@ -163,7 +163,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     }
 
     @SlashHandle(path = "volume", description = "Sets/gets the current volume.")
-    public void volume(SlashCommandInteractionEvent event, @SlashParameter(description = "New volume.", required = false) @Range(from = 0, to = 1000) Integer volume) {
+    public void volume(SlashCommandInteractionEvent event, @SlashParameter(description = "New volume.", required = false) @Range(min = 0, max = 1000) Integer volume) {
         checkManager.check(() -> {
             if (volume == null) {
                 event.reply(String.format("Current volume is %d.", scheduler.getVolume())).queue();

@@ -61,7 +61,7 @@ public class SlashInterfaceManager {
             handler.exception(event, path, e.getCause());
         }
         catch (IllegalAccessException e) {
-            throw new RuntimeException();
+            throw new RuntimeException(e);
         }
     }
 

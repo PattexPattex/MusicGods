@@ -5,8 +5,8 @@ import com.pattexpattex.musicgods.annotations.slash.parameter.Choice;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Range;
 import com.pattexpattex.musicgods.annotations.slash.parameter.SlashParameter;
 import com.pattexpattex.musicgods.interfaces.slash.objects.ParameterType;
-import com.pattexpattex.musicgods.interfaces.slash.objects.SlashPath;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashCommand;
+import com.pattexpattex.musicgods.interfaces.slash.objects.SlashPath;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
@@ -96,10 +96,10 @@ public class SlashDataBuilder {
                         name, par.getType().getSimpleName(), range.getClass().getSimpleName()));
             }
             else if (range != null && (type == ParameterType.INTEGER || type == ParameterType.LONG)) {
-                optionData.setRequiredRange((long) setInRange(range.from()), (long) setInRange(range.to()));
+                optionData.setRequiredRange((long) setInRange(range.min()), (long) setInRange(range.max()));
             }
             else if (range != null) {
-                optionData.setRequiredRange(setInRange(range.from()), setInRange(range.to()));
+                optionData.setRequiredRange(setInRange(range.min()), setInRange(range.max()));
             }
 
             arr[i - 1] = optionData;

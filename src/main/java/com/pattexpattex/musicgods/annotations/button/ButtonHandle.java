@@ -1,4 +1,4 @@
-package com.pattexpattex.musicgods.annotations;
+package com.pattexpattex.musicgods.annotations.button;
 
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 

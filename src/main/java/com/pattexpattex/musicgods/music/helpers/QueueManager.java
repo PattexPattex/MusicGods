@@ -2,7 +2,7 @@ package com.pattexpattex.musicgods.music.helpers;
 
 import com.pattexpattex.musicgods.ApplicationManager;
 import com.pattexpattex.musicgods.GuildContext;
-import com.pattexpattex.musicgods.annotations.ButtonHandle;
+import com.pattexpattex.musicgods.annotations.button.ButtonHandle;
 import com.pattexpattex.musicgods.annotations.slash.Grouped;
 import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterface;
 import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterfaceFactory;

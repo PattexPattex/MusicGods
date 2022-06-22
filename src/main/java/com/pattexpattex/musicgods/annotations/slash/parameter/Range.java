@@ -6,6 +6,6 @@ import java.lang.annotation.*;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Range {
-    double from();
-    double to();
+    double min();
+    double max();
 }

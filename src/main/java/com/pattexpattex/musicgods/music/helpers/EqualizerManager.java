@@ -3,7 +3,7 @@ package com.pattexpattex.musicgods.music.helpers;
 import com.pattexpattex.musicgods.ApplicationManager;
 import com.pattexpattex.musicgods.Bot;
 import com.pattexpattex.musicgods.GuildContext;
-import com.pattexpattex.musicgods.annotations.ButtonHandle;
+import com.pattexpattex.musicgods.annotations.button.ButtonHandle;
 import com.pattexpattex.musicgods.annotations.slash.Grouped;
 import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Range;
@@ -115,8 +115,8 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
 
     @SlashHandle(path = "equalizer/manual", description = "Set a custom equalizer gain at a given band.")
     public void eqBand(SlashCommandInteractionEvent event,
-                       @SlashParameter(description = "A band.") @Range(from = 0, to = 14) int band,
-                       @SlashParameter(description = "The gain.") @Range(from = -0.25d, to = 1.0d) double value) {
+                       @SlashParameter(description = "A band.") @Range(min = 0, max = 14) int band,
+                       @SlashParameter(description = "The gain.") @Range(min = -0.25d, max = 1.0d) double value) {
         checkManager.check(() -> {
             if (isEqualizerEnabled()) {
                 setGain(band, (float) value);

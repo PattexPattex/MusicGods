@@ -1,6 +1,6 @@
 package com.pattexpattex.musicgods.interfaces.button;
 
-import com.pattexpattex.musicgods.annotations.ButtonHandle;
+import com.pattexpattex.musicgods.annotations.button.ButtonHandle;
 import com.pattexpattex.musicgods.interfaces.InterfaceManagerConnector;
 import com.pattexpattex.musicgods.interfaces.button.objects.Button;
 import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterface;

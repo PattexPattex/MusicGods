@@ -2,16 +2,19 @@ package com.pattexpattex.musicgods.interfaces;
 
 import com.pattexpattex.musicgods.ApplicationManager;
 import com.pattexpattex.musicgods.GuildContext;
-import com.pattexpattex.musicgods.annotations.ButtonHandle;
-import com.pattexpattex.musicgods.annotations.SelectionHandle;
-import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
 import com.pattexpattex.musicgods.annotations.Permissions;
-import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterface;
+import com.pattexpattex.musicgods.annotations.button.ButtonHandle;
+import com.pattexpattex.musicgods.annotations.modal.ModalHandle;
+import com.pattexpattex.musicgods.annotations.selection.SelectionHandle;
+import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
 import com.pattexpattex.musicgods.interfaces.button.ButtonInterfaceManager;
+import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterface;
+import com.pattexpattex.musicgods.interfaces.modal.ModalInterfaceManager;
+import com.pattexpattex.musicgods.interfaces.modal.objects.ModalInterface;
 import com.pattexpattex.musicgods.interfaces.selection.SelectionInterfaceManager;
 import com.pattexpattex.musicgods.interfaces.selection.objects.SelectionInterface;
-import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterface;
 import com.pattexpattex.musicgods.interfaces.slash.SlashInterfaceManager;
+import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterface;
 import net.dv8tion.jda.api.entities.Guild;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +27,7 @@ public class InterfaceManagerConnector {
     private final SlashInterfaceManager slashManager;
     private final ButtonInterfaceManager buttonManager;
     private final SelectionInterfaceManager selectionManager;
+    private final ModalInterfaceManager modalManager;
     private final ApplicationManager manager;
 
     public InterfaceManagerConnector(ApplicationManager manager) {
@@ -32,6 +36,7 @@ public class InterfaceManagerConnector {
         this.slashManager = new SlashInterfaceManager(this);
         this.buttonManager = new ButtonInterfaceManager(this);
         this.selectionManager = new SelectionInterfaceManager(this);
+        this.modalManager = new ModalInterfaceManager(this);
     }
 
 
@@ -66,6 +71,7 @@ public class InterfaceManagerConnector {
             SlashHandle slashHandle = method.getAnnotation(SlashHandle.class);
             ButtonHandle buttonHandle = method.getAnnotation(ButtonHandle.class);
             SelectionHandle selectionHandle = method.getAnnotation(SelectionHandle.class);
+            ModalHandle modalHandle = method.getAnnotation(ModalHandle.class);
 
             try {
                 if (slashHandle != null && SlashInterface.class.isAssignableFrom(controllerClass)) {
@@ -78,6 +84,9 @@ public class InterfaceManagerConnector {
                 else if (selectionHandle != null && SelectionInterface.class.isAssignableFrom(controllerClass)) {
                     selectionManager.registerMethod((Class<? extends SelectionInterface>) controllerClass,
                             method, selectionHandle, permissions);
+                }
+                else if (modalHandle != null && ModalInterface.class.isAssignableFrom(controllerClass)) {
+                    modalManager.registerMethod((Class<? extends ModalInterface>) controllerClass, method, modalHandle);
                 }
             }
             catch (RuntimeException e) {
@@ -113,7 +122,11 @@ public class InterfaceManagerConnector {
     public SelectionInterfaceManager getSelectionManager() {
         return selectionManager;
     }
-
+    
+    public ModalInterfaceManager getModalManager() {
+        return modalManager;
+    }
+    
     public ApplicationManager getApplicationManager() {
         return manager;
     }

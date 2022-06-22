@@ -1,6 +1,6 @@
 package com.pattexpattex.musicgods.interfaces.button.objects;
 
-import com.pattexpattex.musicgods.annotations.ButtonHandle;
+import com.pattexpattex.musicgods.annotations.button.ButtonHandle;
 import net.dv8tion.jda.api.entities.Emoji;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.internal.interactions.component.ButtonImpl;
