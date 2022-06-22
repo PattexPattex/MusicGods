@@ -59,18 +59,10 @@ FFMpeg and youtube-dl are bundled with the bot, but they work only on Windows.
 
 Grab the [latest release](https://github.com/PattexPattex/MusicGods/releases/latest), the `.zip` file or the `.jar` file.
 Place the file in a suitable directory.
-
-##### If you downloaded the .jar file:
-
-... just start the jar in the command line: `java -jar MusicGods-X.X.X.jar`.
+Then just start the jar in the command line: `java -jar MusicGods-X.X.X.jar`.
 
 _If you are restarting the bot frequently, you can add the argument `-l` or `--lazy` to the end of the command line to 
 prevent the bot updating slash commands on startup._
-
-##### If you downloaded the .zip file:
-
-... extract the file, then navigate to `/bin` and run the `MusicGods.bat` file. 
-The batch file will automatically warn you if you have an invalid Java installation.
 
 ### Config
 
