@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.pattexpattex'
-version '0.1.1'
+version '0.1.1-hotfix1'
 
 sourceCompatibility = 17
 targetCompatibility = 17

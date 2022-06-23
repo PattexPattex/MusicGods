@@ -1,6 +1,5 @@
 package com.pattexpattex.musicgods.wait.confirmation.choice;
 
-
 public enum ChoiceConfirmationStatus {
     CONFIRMED_ONE(0),
     CONFIRMED_TWO(1),
