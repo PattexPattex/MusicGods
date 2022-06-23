@@ -88,6 +88,12 @@ public class CheckManager {
         Member member = event.getMember();
         Role role = kvintakord.getConfig().getDj();
     
+        if (role == null) {
+            deferAnEvent(event, deferEdit).queue(s -> action.run());
+            return;
+        }
+    
+    
         boolean isDj = member.getRoles()
                 .stream()
                 .anyMatch(r -> r.getIdLong() == role.getIdLong());
