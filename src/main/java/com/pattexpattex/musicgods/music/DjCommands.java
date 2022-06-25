@@ -39,18 +39,35 @@ public class DjCommands implements SlashInterface {
         kvintakord.subInterfaceLoaded(this);
     }
     
-    @SlashHandle(path = "dj/set", description = "Sets a role to be the DJ role for this bot.")
+    @SlashHandle(path = "djrole", description = "Commands related to the DJ role.")
     @Permissions(Permission.MANAGE_SERVER)
-    public void setDjRole(SlashCommandInteractionEvent event, Role role) {
-        kvintakord.getConfig().setDj(role);
-        event.reply(String.format("Set the DJ role to **%s**.", role.getName())).queue();
-    }
-    
-    @SlashHandle(path = "dj/clear", description = "Clears the DJ role of this bot.")
-    @Permissions(Permission.MANAGE_SERVER)
-    public void clearDjRole(SlashCommandInteractionEvent event) {
-        kvintakord.getConfig().setDj(null);
-        event.reply("Cleared the DJ role.").queue();
+    public void djRole(SlashCommandInteractionEvent event,
+                        @SlashParameter(description = "An operation.") @Choice(choices = { "get", "set", "clear" }) String operation,
+                        @SlashParameter(description = "A new DJ role.", required = false) Role role) {
+        switch (operation) {
+            case "get" -> {
+                Role oldRole = kvintakord.getConfig().getDj();
+                
+                if (role == null)
+                    event.reply("No DJ role is set.").queue();
+                else
+                    event.reply(String.format("Current DJ role is **%s**.", role.getName())).queue();
+            }
+            case "set" -> {
+                if (role == null) {
+                    event.reply("Please pass a new role.").queue();
+                    return;
+                }
+                
+                kvintakord.getConfig().setDj(role);
+                event.reply(String.format("Set the DJ role to **%s**.", role.getName())).queue();
+            }
+            case "clear" -> {
+                kvintakord.getConfig().setDj(null);
+                event.reply("Cleared the DJ role.").queue();
+            }
+            default -> throw new IllegalArgumentException("Invalid option " + operation);
+        }
     }
     
     @SlashHandle(path = "playfirst", description = "Puts a track from a Spotify/Youtube URL or a Youtube search query to the start of the queue.")
