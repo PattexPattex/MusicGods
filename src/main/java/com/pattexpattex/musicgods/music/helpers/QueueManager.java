@@ -185,7 +185,7 @@ public class QueueManager implements ButtonInterface, Runnable {
         queueBoxPage.set(0);
 
         if (hook != null)
-            hook.deleteOriginal().queue(null, f -> hook.retrieveOriginal().queue(s -> s.delete().queue()));
+            hook.retrieveOriginal().flatMap(Message::delete).queue();
     }
 
     public void updateQueueMessage() {

@@ -178,7 +178,9 @@ public class Bot {
                 if (current.equalsIgnoreCase(latest))
                     return;
 
-                owner.openPrivateChannel().queue(channel -> channel.sendMessage(String.format(UPDATE_MSG, current, latest, GITHUB, latest)).queue());
+                owner.openPrivateChannel()
+                        .flatMap(channel -> channel.sendMessage(String.format(UPDATE_MSG, current, latest, GITHUB, latest)))
+                        .queue();
             }
             catch (Exception e) {
                 log.warn("Something broke when sending an update notification", e);

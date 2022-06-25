@@ -117,8 +117,8 @@ public class CheckManager {
     
         int i = members.size() / 2;
         new Prompt.Builder(message, event, result -> action.run())
-                .setOnReject(result -> result.getEvent().deferEdit().delay(10, TimeUnit.SECONDS).queue(s -> s.deleteOriginal().queue()))
-                .setOnCancel(result -> result.getEvent().deferEdit().delay(10, TimeUnit.SECONDS).queue(s -> s.deleteOriginal().queue()))
+                .setOnReject(result -> result.getEvent().deferEdit().delay(10, TimeUnit.SECONDS).flatMap(InteractionHook::deleteOriginal).queue())
+                .setOnCancel(result -> result.getEvent().deferEdit().delay(10, TimeUnit.SECONDS).flatMap(InteractionHook::deleteOriginal).queue())
                 .setRequiredAccepts(i)
                 .setRequiredRejects(i)
                 .setTimeout(60)
