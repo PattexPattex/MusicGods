@@ -87,6 +87,8 @@ public class DjCommands implements SlashInterface {
                 case 2 -> event.getHook().editOriginal(String.format("Parameter to (%d) is invalid.", to)).queue();
                 default -> event.getHook().editOriginal(String.format("Moved **%s** from %d to %d.", name, from, to)).queue();
             }
+    
+            kvintakord.updateQueueMessage();
         }, String.format("Move a track from %d to %d?", from, to), event);
     }
     
@@ -99,6 +101,8 @@ public class DjCommands implements SlashInterface {
                 event.getHook().editOriginal(String.format("Removed **%s** at position %d from queue.", name, position)).queue();
             else
                 event.getHook().editOriginal(String.format("Position (%d) is invalid.", position)).queue();
+            
+            kvintakord.updateQueueMessage();
         }, String.format("Remove a track at position %d?", position), event);
     }
     
@@ -149,7 +153,8 @@ public class DjCommands implements SlashInterface {
             checkManager.fairCheck(() -> {
                 kvintakord.getScheduler().setShuffle(shuffle);
                 event.getHook().editOriginal(String.format("Set shuffle mode to %s %s.", (shuffle.isEnabled() ? "enabled" : "disabled"), shuffle.getEmoji())).queue();
-            }, (shuffle == ShuffleMode.ON ? "Shuffle the current queue?" : "Disable queue shuffling?"), event);
+                kvintakord.updateQueueMessage();
+                }, (shuffle == ShuffleMode.ON ? "Shuffle the current queue?" : "Disable queue shuffling?"), event);
         }
     }
     
@@ -158,42 +163,37 @@ public class DjCommands implements SlashInterface {
         checkManager.fairCheck(() -> kvintakord.getScheduler().forCurrentTrack(track -> {
             track.setPosition(0);
             event.getHook().editOriginal(kvintakord.trackStartMessage(track)).queue();
+            kvintakord.updateQueueMessage();
         }), "Restart playback of the current track?", event);
     }
     
     @SlashHandle(path = "forward", description = "Fast forwards the current track for some seconds.")
     public void forward(SlashCommandInteractionEvent event, @SlashParameter(description = "Seconds to fast forward.") int duration) {
-        checkManager.fairCheck(() -> {
-            kvintakord.getScheduler().forCurrentTrack(track -> {
-                if (!track.isSeekable()) {
-                    event.reply("Current track is not seekable.").queue();
-                }
-                else {
-                    track.setPosition(track.getPosition() + (duration * 1000L));
-                    event.reply(String.format("Started playing from %s.", FormatUtils.formatTimeFromMillis(track.getPosition()))).queue();
-                }
-            });
-    
-            kvintakord.updateQueueMessage();
-        }, String.format("Fast forward the current track for %d seconds?", duration), event);
+        checkManager.fairCheck(() -> kvintakord.getScheduler().forCurrentTrack(track -> {
+            if (!track.isSeekable()) {
+                event.reply("Current track is not seekable.").queue();
+            }
+            else {
+                track.setPosition(track.getPosition() + (duration * 1000L));
+                event.reply(String.format("Started playing from %s.", FormatUtils.formatTimeFromMillis(track.getPosition()))).queue();
+                kvintakord.updateQueueMessage();
+            }
+        }), String.format("Fast forward the current track for %d seconds?", duration), event);
     }
     
     @SlashHandle(path = "rewind", description = "Rewinds the current track for some seconds.")
     public void backward(SlashCommandInteractionEvent event,
                          @SlashParameter(description = "Seconds to rewind.") int duration) {
-        checkManager.fairCheck(() -> {
-            kvintakord.getScheduler().forCurrentTrack(track -> {
-                if (!track.isSeekable()) {
-                    event.reply("Current track is not seekable.").queue();
-                }
-                else {
-                    track.setPosition(Math.max(0, track.getPosition() - (duration * 1000L)));
-                    event.reply(String.format("Started playing from %s.", FormatUtils.formatTimeFromMillis(track.getPosition()))).queue();
-                }
-            });
-    
-            kvintakord.updateQueueMessage();
-        }, String.format("Rewind the current track for %d seconds?", duration), event);
+        checkManager.fairCheck(() -> kvintakord.getScheduler().forCurrentTrack(track -> {
+            if (!track.isSeekable()) {
+                event.reply("Current track is not seekable.").queue();
+            }
+            else {
+                track.setPosition(Math.max(0, track.getPosition() - (duration * 1000L)));
+                event.reply(String.format("Started playing from %s.", FormatUtils.formatTimeFromMillis(track.getPosition()))).queue();
+                kvintakord.updateQueueMessage();
+            }
+        }), String.format("Rewind the current track for %d seconds?", duration), event);
     }
     
     @SlashHandle(path = "seek", description = "Starts playing the current track from the given position.")
@@ -206,22 +206,19 @@ public class DjCommands implements SlashInterface {
             return;
         }
         
-        checkManager.fairCheck(() -> {
-            kvintakord.getScheduler().forCurrentTrack(track -> {
-                if (!track.isSeekable()) {
-                    event.getHook().editOriginal("Current track is not seekable.").queue();
-                }
-                else if (track.getDuration() < position) {
-                    event.getHook().editOriginal("Timestamp is longer than the current track's duration.").queue();
-                }
-                else {
-                    track.setPosition(position);
-                    event.getHook().editOriginal(String.format("Set position to %s.", FormatUtils.formatTimeFromMillis(position))).queue();
-                }
-            });
-        
-            kvintakord.updateQueueMessage();
-        }, String.format("Play the current track from %s?", FormatUtils.formatTimeFromMillis(position)), event);
+        checkManager.fairCheck(() -> kvintakord.getScheduler().forCurrentTrack(track -> {
+            if (!track.isSeekable()) {
+                event.getHook().editOriginal("Current track is not seekable.").queue();
+            }
+            else if (track.getDuration() < position) {
+                event.getHook().editOriginal("Timestamp is longer than the current track's duration.").queue();
+            }
+            else {
+                track.setPosition(position);
+                event.getHook().editOriginal(String.format("Set position to %s.", FormatUtils.formatTimeFromMillis(position))).queue();
+                kvintakord.updateQueueMessage();
+            }
+        }), String.format("Play the current track from %s?", FormatUtils.formatTimeFromMillis(position)), event);
     }
     
     public Kvintakord getKvintakord() {

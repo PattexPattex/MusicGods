@@ -88,7 +88,6 @@ public class MusicScheduler extends AudioEventAdapter {
     public void setLoop(LoopMode loop) {
         loopMode.set(loop);
         config.setLoop(loop);
-        kvintakord.updateQueueMessage();
     }
 
     public LoopMode getLoop() {
@@ -107,7 +106,6 @@ public class MusicScheduler extends AudioEventAdapter {
     public void setShuffle(ShuffleMode shuffle) {
         shuffleMode.set(shuffle);
         config.setShuffle(shuffle);
-        kvintakord.updateQueueMessage();
     }
 
     public ShuffleMode getShuffle() {
@@ -177,16 +175,13 @@ public class MusicScheduler extends AudioEventAdapter {
             queue.addAll(tracks);
         }
 
-        kvintakord.updateQueueMessage();
         return 0;
     }
 
     public boolean removeTrack(int position) {
         if (position < 0 || position >= queue.size()) return false;
-        boolean done = queue.remove(getQueue().get(position));
-
-        if (done) kvintakord.updateQueueMessage();
-        return done;
+        
+        return queue.remove(getQueue().get(position));
     }
 
     /**

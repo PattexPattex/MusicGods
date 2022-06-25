@@ -100,8 +100,8 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
     public void eqReset(SlashCommandInteractionEvent event) {
         checkManager.check(() -> {
             resetEqualizer();
-            updateEqualizerMessage();
             event.reply("Reset the equalizer.").queue();
+            updateEqualizerMessage();
         }, event);
     }
 
@@ -109,7 +109,7 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
     public void equalizer(SlashCommandInteractionEvent event) {
         checkManager.check(() -> {
             enableEqualizer();
-            updateEqualizerMessage(event);
+            updateEqualizerMessage(event.getHook());
         }, event);
     }
 
@@ -148,8 +148,8 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
     @ButtonHandle(identifier = "kv.equalizer:gui", emoji = BotEmoji.SLIDER)
     public void equalizerButton(ButtonInteractionEvent event) {
         checkManager.deferredCheck(() -> {
-            enableEqualizer();
             eqBox.set(event.getHook());
+            enableEqualizer();
             updateEqualizerMessage();
         }, event, false);
     }
@@ -370,29 +370,29 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
         updateEqualizerMessage(null);
     }
 
-    public void updateEqualizerMessage(@Nullable SlashCommandInteractionEvent event) {
+    public void updateEqualizerMessage(@Nullable InteractionHook hook) {
         AudioTrack track = player.getPlayingTrack();
 
         if (track == null)
             destroyEqualizerMessage();
         else {
-            InteractionHook hook = eqBox.get();
+            InteractionHook oldHook = eqBox.get();
             Message box = EqualizerGuiBuilder.build(equalizer, kvintakord.getApplicationManager());
 
-            if (event != null) {
+            if (hook != null) {
                 if (creatingEqBox.compareAndSet(false, true)) {
-                    event.reply(box).queue(created -> {
-                        if (hook != null)
-                            hook.deleteOriginal().queue();
+                    hook.editOriginal(box).queue(created -> {
+                        if (oldHook != null)
+                            oldHook.deleteOriginal().queue();
 
-                        eqBox.set(created);
+                        eqBox.set(hook);
                         creatingEqBox.set(false);
                     }, error ->
                             creatingEqBox.set(false));
                 }
             }
-            else if (hook != null)
-                hook.editOriginal(box).queue();
+            else if (oldHook != null)
+                oldHook.editOriginal(box).queue();
         }
     }
 

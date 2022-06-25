@@ -13,7 +13,6 @@ import com.pattexpattex.musicgods.util.builders.QueueBoxBuilder;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.interactions.InteractionHook;
@@ -57,10 +56,10 @@ public class QueueManager implements ButtonInterface, Runnable {
     @ButtonHandle(identifier = "kv:current.back", emoji = BotEmoji.REWIND)
     public void backButton(ButtonInteractionEvent event) {
         checkManager.fairCheck(() -> {
+            setQueueBox(event.getHook());
             kvintakord.getScheduler().forCurrentTrack(track ->
                     track.setPosition(Math.max(0, track.getPosition()) - TRACK_MOVE_MILLIS));
     
-            setQueueBox(event.getHook());
             updateQueueMessage();
         }, String.format("Rewind the current track for %s seconds?", TRACK_MOVE_MILLIS), event, true);
     }
@@ -70,16 +69,17 @@ public class QueueManager implements ButtonInterface, Runnable {
         checkManager.deferredCheck(() -> {
             setQueueBox(event.getHook());
             kvintakord.getScheduler().pause();
+            updateQueueMessage();
         }, event, true);
     }
 
     @ButtonHandle(identifier = "kv:current.forward", emoji = BotEmoji.FAST_FORWARD)
     public void forwardButton(ButtonInteractionEvent event) {
         checkManager.fairCheck(() -> {
+            setQueueBox(event.getHook());
             kvintakord.getScheduler().forCurrentTrack(track ->
                     track.setPosition(track.getPosition() + TRACK_MOVE_MILLIS));
     
-            setQueueBox(event.getHook());
             updateQueueMessage();
         }, String.format("Fast forward the current track for %s seconds?", TRACK_MOVE_MILLIS), event, true);
     }
@@ -89,12 +89,12 @@ public class QueueManager implements ButtonInterface, Runnable {
         kvintakord.getCheckManager().fairCheck(() -> {
             setQueueBox(event.getHook());
             kvintakord.getScheduler().skipTrack();
+            updateQueueMessage();
         }, "Skip the current track?", event, true);
     }
 
     @ButtonHandle(identifier = "kv:stop", emoji = BotEmoji.STOP_TRACK)
     public void stopButton(ButtonInteractionEvent event) {
-    
         checkManager.fairCheck(() -> {
             setQueueBox(event.getHook());
             kvintakord.getScheduler().stop(true);
@@ -106,6 +106,7 @@ public class QueueManager implements ButtonInterface, Runnable {
         checkManager.deferredCheck(() -> {
             setQueueBox(event.getHook());
             kvintakord.getScheduler().incrementLoop();
+            updateQueueMessage();
         }, event, true);
     }
 
@@ -114,6 +115,7 @@ public class QueueManager implements ButtonInterface, Runnable {
         checkManager.fairCheck(() -> {
             setQueueBox(event.getHook());
             kvintakord.getScheduler().toggleShuffle();
+            updateQueueMessage();
         }, "Toggle the shuffle mode?", event, true);
     }
 
@@ -154,6 +156,7 @@ public class QueueManager implements ButtonInterface, Runnable {
 
     @ButtonHandle(identifier = "kv:destroy", label = "End interaction", style = ButtonStyle.DANGER)
     public void destroyButton(ButtonInteractionEvent event) {
+        setQueueBox(event.getHook());
         event.deferEdit().queue();
         destroyQueueMessage();
     }
@@ -189,31 +192,31 @@ public class QueueManager implements ButtonInterface, Runnable {
         updateQueueMessage(null);
     }
 
-    public void updateQueueMessage(@Nullable SlashCommandInteractionEvent event) {
+    public void updateQueueMessage(@Nullable InteractionHook hook) {
         AudioTrack track = kvintakord.getPlayer().getPlayingTrack();
 
         if (track == null)
             destroyQueueMessage();
         else {
             MusicScheduler scheduler = kvintakord.getScheduler();
-            InteractionHook hook = queueBox.get();
+            InteractionHook oldHook = queueBox.get();
             Message box = QueueBoxBuilder.build(track, scheduler.getQueue(), scheduler.getLoop(),
                     scheduler.getShuffle(), scheduler.isPaused(), scheduler.getVolume(), queueBoxPage.get(), manager);
 
-            if (event != null) {
+            if (hook != null) {
                 if (creatingQueueBox.compareAndSet(false, true)) {
-                    event.reply(box).queue(created -> {
-                        if (hook != null)
-                            hook.deleteOriginal().queue();
+                    hook.editOriginal(box).queue(created -> {
+                        if (oldHook != null)
+                            oldHook.deleteOriginal().queue();
 
-                        queueBox.set(created);
+                        queueBox.set(hook);
                         creatingQueueBox.set(false);
                     }, error ->
                             creatingQueueBox.set(false));
                 }
             }
-            else if (hook != null) {
-                hook.editOriginal(box).queue(null, new ErrorHandler().ignore(ErrorResponse.INVALID_WEBHOOK_TOKEN));
+            else if (oldHook != null) {
+                oldHook.editOriginal(box).queue(null, new ErrorHandler().ignore(ErrorResponse.INVALID_WEBHOOK_TOKEN));
             }
         }
     }

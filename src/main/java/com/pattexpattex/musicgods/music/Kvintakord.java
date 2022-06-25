@@ -127,19 +127,21 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
                 event.reply("Paused playback.").queue();
             else
                 event.reply("Resumed playback.").queue();
+    
+            updateQueueMessage();
         }, event);
     }
 
     @SlashHandle(path = "queue", description = "Gets the current queue along with a simple GUI to control music.")
     @Permissions(self = { Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS })
     public void queue(SlashCommandInteractionEvent event, @SlashParameter(description = "Page of the printed queue.", required = false) Integer page) {
-        checkManager.check(() -> {
+        checkManager.deferredCheck(() -> {
             outputChannel.set(event.getTextChannel());
     
             if (page != null)
                 getSubInterface(QueueManager.class).setQueueBoxPage(page);
-            getSubInterface(QueueManager.class).updateQueueMessage(event);
-        }, event);
+            getSubInterface(QueueManager.class).updateQueueMessage(event.getHook());
+        }, event, false);
     }
 
     @SlashHandle(path = "loop", description = "Sets/gets the loop mode.")
@@ -154,6 +156,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
                     LoopMode lm = LoopMode.ofString(mode);
                     scheduler.setLoop(lm);
                     event.reply(String.format("Set loop to %s %s.", lm.getEmoji(), lm.getFormatted())).queue();
+                    updateQueueMessage();
                 }
                 catch (IllegalArgumentException e) {
                     event.reply("Invalid loop mode " + mode).queue();
@@ -170,8 +173,8 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
             }
             else {
                 scheduler.setVolume(volume);
-                updateQueueMessage();
                 event.reply(String.format("Set volume to %d.", volume)).queue();
+                updateQueueMessage();
             }
         }, event);
     }
