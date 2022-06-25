@@ -1,6 +1,7 @@
 package com.pattexpattex.musicgods.music.audio;
 
 import com.pattexpattex.musicgods.music.spotify.SpotifyAudioTrack;
+import com.pattexpattex.musicgods.util.FormatUtils;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import org.jetbrains.annotations.Contract;
@@ -139,6 +140,37 @@ public class TrackMetadata {
 
         if (metadata == null) return track.getInfo().uri;
         return metadata.uri;
+    }
+    
+    public static String getBasicInfo(AudioTrack track) {
+        if (track == null) return null;
+        
+        return String.format("**%s** by %s (`%s`)", getName(track), getAuthor(track), FormatUtils.formatTimeFromMillis(track.getDuration()));
+    }
+    
+    public static String getBasicInfoWithUrls(AudioTrack track) {
+        if (track == null) return null;
+        
+        String url = getUri(track);
+        String authorUrl = getAuthorUrl(track);
+        
+        StringBuilder builder = new StringBuilder();
+        
+        if (url == null)
+            builder.append(getName(track));
+        else
+            builder.append(String.format("[%s](%s)", getName(track), url));
+        
+        builder.append(" by ");
+    
+        if (authorUrl == null)
+            builder.append(getAuthor(track));
+        else
+            builder.append(String.format("[%s](%s)", getAuthor(track), authorUrl));
+        
+        builder.append(String.format(" (`%s`)", FormatUtils.formatTimeFromMillis(track.getDuration())));
+        
+        return builder.toString();
     }
 
     /*

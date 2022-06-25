@@ -2,10 +2,10 @@ package com.pattexpattex.musicgods.util.builders;
 
 import com.pattexpattex.musicgods.ApplicationManager;
 import com.pattexpattex.musicgods.interfaces.button.ButtonInterfaceManager;
-import com.pattexpattex.musicgods.music.helpers.QueueManager;
 import com.pattexpattex.musicgods.music.audio.LoopMode;
 import com.pattexpattex.musicgods.music.audio.ShuffleMode;
 import com.pattexpattex.musicgods.music.audio.TrackMetadata;
+import com.pattexpattex.musicgods.music.helpers.QueueManager;
 import com.pattexpattex.musicgods.util.BotEmoji;
 import com.pattexpattex.musicgods.util.FormatUtils;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -41,9 +41,7 @@ public class QueueBoxBuilder {
                 break;
             }
 
-            AudioTrack tr = queue.get(i);
-            stringBuilder.append(String.format("**%d.** `%s` %s\n", i + 1, formatTimeFromMillis(tr.getDuration()),
-                    FormatUtils.formatTrackUrl(tr)));
+            stringBuilder.append(String.format("**%d.** %s\n", i + 1, TrackMetadata.getBasicInfoWithUrls(queue.get(i))));
         }
 
         return messageBuilder.setActionRows(buildActionRows(track, queue, page, manager))

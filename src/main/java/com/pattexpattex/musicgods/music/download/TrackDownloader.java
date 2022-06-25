@@ -15,7 +15,6 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.FunctionalResultHandler;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
-import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import org.slf4j.Logger;
@@ -28,8 +27,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.sedmelluq.discord.lavaplayer.format.StandardAudioDataFormats.COMMON_PCM_S16_BE;
 
 public class TrackDownloader {
 
@@ -60,13 +57,13 @@ public class TrackDownloader {
 
     private final long id;
     private final String url;
-    private final String clientUrl;
+    private final AudioTrack track;
     private final InteractionHook hook;
 
-    private TrackDownloader(InteractionHook hook, String url, String clientUrl) {
+    private TrackDownloader(InteractionHook hook, String url, AudioTrack track) {
         this.id = RANDOM.nextLong(Long.MAX_VALUE);
         this.url = url;
-        this.clientUrl = (clientUrl == null ? url : clientUrl);
+        this.track = track;
         this.hook = hook;
     }
 
@@ -109,8 +106,8 @@ public class TrackDownloader {
                     return null;
                 }
 
-                hook.sendFile(file).setContent(String.format("URL: <%s> **|** File size: `%s MB` **|** Elapsed time: `%s`",
-                        clientUrl, bytesToMegaBytes(file.length()),
+                hook.sendFile(file).setContent(String.format("%s **|** URL: <%s> **|** File size: `%s MB` **|** Elapsed time: `%s`",
+                        TrackMetadata.getBasicInfo(track), TrackMetadata.getUri(track), bytesToMegaBytes(file.length()),
                         FormatUtils.formatTimeFromMillis(response.getElapsedTime()))).queue(
                                 s -> {
                                     if (!file.delete())
@@ -134,38 +131,40 @@ public class TrackDownloader {
         });
     }
 
-    public static TrackDownloader newProcess(String identifier, InteractionHook hook, Kvintakord kvintakord) {
+    public static TrackDownloader newProcess(String identifier, String engine, InteractionHook hook, Kvintakord kvintakord) {
         if (DISABLED.get()) {
             hook.editOriginal("Track downloading is currently disabled.").queue();
             return new TrackDownloader(hook, null, null);
         }
 
         AudioPlayerManager manager = new DefaultAudioPlayerManager();
-        manager.getConfiguration().setOutputFormat(COMMON_PCM_S16_BE);
-        manager.registerSourceManager(new YoutubeAudioSourceManager());
         manager.registerSourceManager(new SpotifyAudioSourceManager(kvintakord.getApplicationManager().getSpotifyManager(), new YoutubeAudioSourceManager()));
-
-        String[] urls = new String[2];
+        manager.registerSourceManager(new YoutubeAudioSourceManager());
+        
+        CompletableFuture<TrackDownloader> future = CompletableFuture.completedFuture(null);
+        
+        manager.loadItemOrdered(hook, kvintakord.cleanIdentifier(identifier, engine), new FunctionalResultHandler(
+                track -> future.complete(new TrackDownloader(hook, parseYoutubeUrl(track), track)),
+                playlist -> {
+                    AudioTrack track1 = playlist.getTracks().get(0);
+                    future.complete(new TrackDownloader(hook, parseYoutubeUrl(track1), track1));
+                },
+                () -> hook.editOriginal(String.format("No results for **%s**.", identifier)).queue(),
+                e -> hook.editOriginal(String.format("Failed with an exception: `%s`.", e.getMessage())).queue()
+        ));
+    
         try {
-            manager.loadItemOrdered(hook, kvintakord.cleanIdentifier(identifier), new FunctionalResultHandler(
-                    track -> parseYoutubeUrl(track, urls),
-                    playlist -> parseYoutubeUrl(playlist.getTracks().get(0), urls),
-                    () -> hook.editOriginal(String.format("No results for **%s**.", identifier)).queue(),
-                    e -> hook.editOriginal(String.format("Failed with an exception: `%s`.", e.getMessage())).queue()
-            )).get(10, TimeUnit.SECONDS);
+            return future.get(10, TimeUnit.SECONDS);
         }
-        catch (InterruptedException | ExecutionException | TimeoutException e) {
-            if (e instanceof TimeoutException)
-                hook.editOriginal("Search timed out.").queue();
-            else {
-                hook.editOriginal("Something went wrong.").queue();
-                log.error("Something went wrong while looking up a track", e);
-            }
-
-            return new TrackDownloader(hook, null, null);
+        catch (InterruptedException | ExecutionException e) {
+            hook.editOriginal("Something went wrong.").queue();
+            log.error("Something went wrong while looking up a track", e);
         }
-
-        return new TrackDownloader(hook, urls[0], urls[1]);
+        catch (TimeoutException e) {
+            hook.editOriginal("Search timed out.").queue();
+        }
+    
+        return new TrackDownloader(hook, null, null);
     }
 
     public static TrackDownloader newProcess(AudioTrack track, InteractionHook hook) {
@@ -174,18 +173,11 @@ public class TrackDownloader {
             return new TrackDownloader(hook, null, null);
         }
 
-        String[] urls = new String[2]; //I am too lazy to implement a better system
-        parseYoutubeUrl(track, urls);
-        return new TrackDownloader(hook, urls[0], urls[1]);
+        return new TrackDownloader(hook, parseYoutubeUrl(track), track);
     }
 
-    private static void parseYoutubeUrl(AudioTrack track, String[] urls) {
-        urls[1] = TrackMetadata.getUri(track);
-
-        if (track instanceof YoutubeAudioTrack)
-            urls[0] = track.getInfo().uri;
-        else
-            throw new IllegalArgumentException("Track is not a YoutubeAudioTrack");
+    private static String parseYoutubeUrl(AudioTrack track) {
+        return track.getInfo().uri;
     }
 
     private static RuntimeException wrapOut(String out, String err) {

@@ -111,12 +111,14 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
 
     /* ---- Base commands ---- */
 
-    @SlashHandle(path = "play", description = "Starts playing a track from a Spotify/Youtube URL or a Youtube search query.")
+    @SlashHandle(path = "play", description = "Plays a track.")
     @Permissions(self = { Permission.MESSAGE_SEND, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK })
-    public void play(SlashCommandInteractionEvent event, @SlashParameter(description = "URL/query.") String identifier) {
+    public void play(SlashCommandInteractionEvent event,
+                     @SlashParameter(description = "URL/query.") String identifier,
+                     @SlashParameter(description = "A search engine.", required = false) @Choice(choices = { "youtube", "spotify" }) String engine) {
         checkManager.check(() -> {
             event.deferReply().queue();
-            addTrack(event, identifier, false);
+            addTrack(event, identifier, engine, false);
         }, event, PLAY_CHECKS);
     }
 
@@ -179,14 +181,15 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
         }, event);
     }
     
-    @SlashHandle(path = "search", description = "Searches all sources with a query.")
-    public void search(SlashCommandInteractionEvent event, @SlashParameter(description = "Search query.") String identifier) {
-        checkManager.deferredCheck(() -> playerManager.loadItemOrdered(this, cleanIdentifier(identifier), new AudioLoadResultHandler() {
+    @SlashHandle(path = "search", description = "Searches sources with a query.")
+    public void search(SlashCommandInteractionEvent event,
+                       @SlashParameter(description = "Search query.") String identifier,
+                       @SlashParameter(description = "A search engine.", required = false) @Choice(choices = { "youtube", "spotify" }) String engine) {
+        checkManager.deferredCheck(() -> playerManager.loadItemOrdered(this, cleanIdentifier(identifier, engine), new AudioLoadResultHandler() {
     
             @Override
             public void trackLoaded(AudioTrack track) {
-                String prompt = String.format("Loaded **%s** (`%s`) from search. Play it now?",
-                        TrackMetadata.getName(track), FormatUtils.formatTimeFromMillis(track.getDuration()));
+                String prompt = String.format("Loaded %s from search. Play it now?", TrackMetadata.getBasicInfo(track));
     
                 new Confirmation.Builder(prompt, event, result -> {
                     if (result.getStatus() == ConfirmationStatus.CONFIRMED) {
@@ -200,17 +203,14 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
-                String prompt = String.format("Select a track from **%s**", playlist.getName());
+                String prompt = String.format("Select a track from **%s**:", playlist.getName());
     
                 new ChoiceConfirmation.Builder(prompt, event, (result, i) -> addTrack(event, playlist.getTracks().get(i), false))
                         .setTimeout(60)
                         .setChoices(playlist.getTracks()
                                 .stream()
                                 .limit(4)
-                                .map(track -> String.format(
-                                        "(`%s`) **%s**",
-                                        FormatUtils.formatTimeFromMillis(track.getDuration()),
-                                        TrackMetadata.getName(track)))
+                                .map(TrackMetadata::getBasicInfo)
                                 .toList())
                         .setOnCancel(result -> {})
                         .build();
@@ -218,12 +218,12 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     
             @Override
             public void noMatches() {
-                event.getHook().editOriginal(String.format("No results for **%s**", identifier)).queue();
+                event.getHook().editOriginal(String.format("No results for **%s**.", identifier)).queue();
             }
     
             @Override
             public void loadFailed(FriendlyException exception) {
-                event.getHook().editOriginal(String.format("Failed with an exception: `%s`.", exception.getMessage())).queue();
+                event.getHook().editOriginal(String.format("%s.", exception.getMessage())).queue();
             }
         }), event, false, PLAY_CHECKS);
     }
@@ -330,28 +330,30 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     }
     
     public String trackStartMessage(AudioTrack track) {
-        return String.format("Started playing **%s** (`%s`).", TrackMetadata.getName(track), FormatUtils.formatTimeFromMillis(track.getDuration()));
+        return String.format("Started playing %s.", TrackMetadata.getBasicInfo(track));
     }
     
     public String trackLoadMessage(AudioTrack track) {
-        return String.format("Loaded **%s** (`%s`).", TrackMetadata.getName(track), FormatUtils.formatTimeFromMillis(track.getDuration()));
+        return String.format("Loaded %s.", TrackMetadata.getBasicInfo(track));
     }
     
-    public String cleanIdentifier(String identifier) {
+    public String cleanIdentifier(String identifier, String engine) {
         Matcher matcher = FormatUtils.HTTP_PATTERN.matcher(identifier);
         
-        if (matcher.matches()) {
+        if (matcher.matches())
             return identifier.replaceAll("(^[<|*_`]{0,3})|([>|*_`]{0,3}$)", "");
-        }
         
-        return "ytsearch: " + identifier.replaceAll("(^[<|*_`]{0,3})|([>|*_`]{0,3}$)", "");
+        if ("spotify".equals(engine))
+            return "spsearch: " + identifier.replaceAll("(^[<|*_`]{0,3})|([>|*_`]{0,3}$)", "");
+        else
+            return "ytsearch: " + identifier.replaceAll("(^[<|*_`]{0,3})|([>|*_`]{0,3}$)", "");
     }
     
-    public void addTrack(IReplyCallback callback, String identifier, boolean first) {
+    public void addTrack(IReplyCallback callback, String identifier, String engine, boolean first) {
         setOutputChannel(callback.getTextChannel());
         AudioChannel channel = callback.getMember().getVoiceState().getChannel();
         
-        playerManager.loadItemOrdered(this, cleanIdentifier(identifier), new AudioLoadResultHandler() {
+        playerManager.loadItemOrdered(this, cleanIdentifier(identifier, engine), new AudioLoadResultHandler() {
             
             @Override
             public void trackLoaded(AudioTrack track) {
@@ -390,7 +392,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
             
             @Override
             public void loadFailed(FriendlyException exception) {
-                callback.getHook().editOriginal(String.format("Failed with an exception: `%s`.", exception.getMessage())).queue();
+                callback.getHook().editOriginal(String.format("%s.", exception.getMessage())).queue();
             }
         });
     }

@@ -70,10 +70,12 @@ public class DjCommands implements SlashInterface {
         }
     }
     
-    @SlashHandle(path = "playfirst", description = "Puts a track from a Spotify/Youtube URL or a Youtube search query to the start of the queue.")
+    @SlashHandle(path = "playfirst", description = "Plays a track next.")
     @Permissions(self = { Permission.MESSAGE_SEND, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK })
-    public void playfirst(SlashCommandInteractionEvent event, @SlashParameter(description = "URL/query.") String identifier) {
-        checkManager.fairCheck(() -> kvintakord.addTrack(event, identifier, true),
+    public void playfirst(SlashCommandInteractionEvent event,
+                          @SlashParameter(description = "URL/query.") String identifier,
+                          @SlashParameter(description = "A search engine.", required = false) @Choice(choices = { "youtube", "spotify" }) String engine) {
+        checkManager.fairCheck(() -> kvintakord.addTrack(event, identifier, engine, true),
                 String.format("Play **%s** next?", identifier), event, Kvintakord.PLAY_CHECKS);
     }
     
@@ -97,12 +99,12 @@ public class DjCommands implements SlashInterface {
                      @SlashParameter(description = "Position to move the track to.") int to) {
         
         checkManager.fairCheck(() -> {
-            String name = TrackMetadata.getName(kvintakord.getScheduler().getCurrentTrack());
+            String info = TrackMetadata.getBasicInfo(kvintakord.getScheduler().getCurrentTrack());
             
             switch (kvintakord.getScheduler().moveTrack(from - 1, to - 1)) {
                 case 1 -> event.getHook().editOriginal(String.format("Parameter from (%d) is invalid.", from)).queue();
                 case 2 -> event.getHook().editOriginal(String.format("Parameter to (%d) is invalid.", to)).queue();
-                default -> event.getHook().editOriginal(String.format("Moved **%s** from %d to %d.", name, from, to)).queue();
+                default -> event.getHook().editOriginal(String.format("Moved **%s** from %d to %d.", info, from, to)).queue();
             }
     
             kvintakord.updateQueueMessage();
@@ -112,10 +114,10 @@ public class DjCommands implements SlashInterface {
     @SlashHandle(path = "remove", description = "Removes a track.")
     public void remove(SlashCommandInteractionEvent event, @SlashParameter(description = "Position of the track to remove.") int position) {
         checkManager.fairCheck(() -> {
-            String name = TrackMetadata.getName(kvintakord.getScheduler().getCurrentTrack());
+            String info = TrackMetadata.getBasicInfo(kvintakord.getScheduler().getCurrentTrack());
             
             if (kvintakord.getScheduler().removeTrack(position - 1))
-                event.getHook().editOriginal(String.format("Removed **%s** at position %d from queue.", name, position)).queue();
+                event.getHook().editOriginal(String.format("Removed **%s** at position %d from queue.", info, position)).queue();
             else
                 event.getHook().editOriginal(String.format("Position (%d) is invalid.", position)).queue();
             
@@ -144,14 +146,16 @@ public class DjCommands implements SlashInterface {
         }, event, false, CheckManager.Check.OK);
     }
     
-    @SlashHandle(path = "download", description = "Downloads and sends you a track.")
-    public void download(SlashCommandInteractionEvent event, @SlashParameter(description = "Track to download.", required = false) String identifier) {
+    @SlashHandle(path = "download", description = "Downloads a track.")
+    public void download(SlashCommandInteractionEvent event,
+                         @SlashParameter(description = "Track to download.", required = false) String identifier,
+                         @SlashParameter(description = "A search engine.", required = false) @Choice(choices = { "youtube", "spotify" }) String engine) {
         if (identifier == null)
             checkManager.djCheck(() ->
                             kvintakord.getScheduler().forCurrentTrack(track -> TrackDownloader.newProcess(track, event.getHook()).start()),
                     event, false, CheckManager.Check.PLAYING);
         else
-            checkManager.djCheck(() -> TrackDownloader.newProcess(identifier, event.getHook(), kvintakord).start(),
+            checkManager.djCheck(() -> TrackDownloader.newProcess(identifier, engine, event.getHook(), kvintakord).start(),
                     event, false, CheckManager.Check.OK);
         
     }

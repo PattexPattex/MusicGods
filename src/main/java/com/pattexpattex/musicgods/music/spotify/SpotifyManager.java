@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
+import se.michaelthelin.spotify.model_objects.special.SearchResult;
 import se.michaelthelin.spotify.model_objects.specification.Album;
 import se.michaelthelin.spotify.model_objects.specification.Artist;
 import se.michaelthelin.spotify.model_objects.specification.Playlist;
@@ -20,6 +21,7 @@ import se.michaelthelin.spotify.requests.data.albums.GetAlbumRequest;
 import se.michaelthelin.spotify.requests.data.artists.GetArtistRequest;
 import se.michaelthelin.spotify.requests.data.artists.GetArtistsTopTracksRequest;
 import se.michaelthelin.spotify.requests.data.playlists.GetPlaylistRequest;
+import se.michaelthelin.spotify.requests.data.search.SearchItemRequest;
 import se.michaelthelin.spotify.requests.data.tracks.GetTrackRequest;
 
 import java.io.IOException;
@@ -99,6 +101,19 @@ public class SpotifyManager {
 
     public boolean isNotEnabled() {
         return !useSpotify.get();
+    }
+    
+    public SearchResult searchSpotify(@NotNull String identifier) {
+        if (checkNotAuthorized()) return null;
+        SearchItemRequest request = api.searchItem(identifier, "track").build();
+        
+        try {
+            return request.execute();
+        }
+        catch (IOException | ParseException | SpotifyWebApiException e) {
+            log.warn("Something broke while executing request on route {}", request.getUri(), e);
+            throw new SpotifyException(e);
+        }
     }
 
     public Track getTrack(@NotNull String url) {
