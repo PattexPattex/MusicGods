@@ -7,6 +7,7 @@ import com.pattexpattex.musicgods.annotations.button.ButtonHandle;
 import com.pattexpattex.musicgods.annotations.modal.ModalHandle;
 import com.pattexpattex.musicgods.annotations.selection.SelectionHandle;
 import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
+import com.pattexpattex.musicgods.annotations.slash.autocomplete.AutocompleteHandle;
 import com.pattexpattex.musicgods.interfaces.button.ButtonInterfaceManager;
 import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterface;
 import com.pattexpattex.musicgods.interfaces.modal.ModalInterfaceManager;
@@ -14,6 +15,8 @@ import com.pattexpattex.musicgods.interfaces.modal.objects.ModalInterface;
 import com.pattexpattex.musicgods.interfaces.selection.SelectionInterfaceManager;
 import com.pattexpattex.musicgods.interfaces.selection.objects.SelectionInterface;
 import com.pattexpattex.musicgods.interfaces.slash.SlashInterfaceManager;
+import com.pattexpattex.musicgods.interfaces.slash.autocomplete.AutocompleteInterfaceManager;
+import com.pattexpattex.musicgods.interfaces.slash.autocomplete.objects.AutocompleteInterface;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterface;
 import net.dv8tion.jda.api.entities.Guild;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +28,7 @@ public class InterfaceManagerConnector {
 
     private final List<BaseInterfaceFactory<? extends BaseInterface>> factories;
     private final SlashInterfaceManager slashManager;
+    private final AutocompleteInterfaceManager autocompleteManager;
     private final ButtonInterfaceManager buttonManager;
     private final SelectionInterfaceManager selectionManager;
     private final ModalInterfaceManager modalManager;
@@ -34,6 +38,7 @@ public class InterfaceManagerConnector {
         this.manager = manager;
         this.factories = new LinkedList<>();
         this.slashManager = new SlashInterfaceManager(this);
+        this.autocompleteManager = new AutocompleteInterfaceManager(this);
         this.buttonManager = new ButtonInterfaceManager(this);
         this.selectionManager = new SelectionInterfaceManager(this);
         this.modalManager = new ModalInterfaceManager(this);
@@ -69,6 +74,7 @@ public class InterfaceManagerConnector {
             Permissions permissions = method.getAnnotation(Permissions.class);
 
             SlashHandle slashHandle = method.getAnnotation(SlashHandle.class);
+            AutocompleteHandle autocompleteHandle = method.getAnnotation(AutocompleteHandle.class);
             ButtonHandle buttonHandle = method.getAnnotation(ButtonHandle.class);
             SelectionHandle selectionHandle = method.getAnnotation(SelectionHandle.class);
             ModalHandle modalHandle = method.getAnnotation(ModalHandle.class);
@@ -76,6 +82,10 @@ public class InterfaceManagerConnector {
             try {
                 if (slashHandle != null && SlashInterface.class.isAssignableFrom(controllerClass)) {
                     slashManager.registerMethod((Class<? extends SlashInterface>) controllerClass, method);
+                }
+                else if (autocompleteHandle != null && AutocompleteInterface.class.isAssignableFrom(controllerClass)) {
+                    autocompleteManager.registerMethod((Class<? extends AutocompleteInterface>) controllerClass,
+                            method, autocompleteHandle);
                 }
                 else if (buttonHandle != null && ButtonInterface.class.isAssignableFrom(controllerClass)) {
                     buttonManager.registerMethod((Class<? extends ButtonInterface>) controllerClass,
@@ -114,7 +124,11 @@ public class InterfaceManagerConnector {
     public SlashInterfaceManager getSlashManager() {
         return slashManager;
     }
-
+    
+    public AutocompleteInterfaceManager getAutocompleteManager() {
+        return autocompleteManager;
+    }
+    
     public ButtonInterfaceManager getButtonManager() {
         return buttonManager;
     }

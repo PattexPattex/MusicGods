@@ -11,6 +11,8 @@ import com.pattexpattex.musicgods.interfaces.modal.objects.ModalInterface;
 import com.pattexpattex.musicgods.interfaces.modal.objects.ModalResponseHandler;
 import com.pattexpattex.musicgods.interfaces.selection.objects.SelectionInterface;
 import com.pattexpattex.musicgods.interfaces.selection.objects.SelectionResponseHandler;
+import com.pattexpattex.musicgods.interfaces.slash.autocomplete.objects.AutocompleteInterface;
+import com.pattexpattex.musicgods.interfaces.slash.autocomplete.objects.AutocompleteResponseHandler;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterface;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashParameter;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashPath;
@@ -20,10 +22,8 @@ import com.pattexpattex.musicgods.music.spotify.SpotifyManager;
 import com.pattexpattex.musicgods.util.FormatUtils;
 import com.pattexpattex.musicgods.util.OtherUtils;
 import com.pattexpattex.musicgods.util.dispatchers.InteractionMessageDispatcher;
-import com.pattexpattex.musicgods.util.dispatchers.impl.ButtonMessageDispatcherImpl;
-import com.pattexpattex.musicgods.util.dispatchers.impl.ModalMessageDispatcherImpl;
-import com.pattexpattex.musicgods.util.dispatchers.impl.SelectionMessageDispatcherImpl;
-import com.pattexpattex.musicgods.util.dispatchers.impl.SlashMessageDispatcherImpl;
+import com.pattexpattex.musicgods.util.dispatchers.MessageDispatcher;
+import com.pattexpattex.musicgods.util.dispatchers.impl.*;
 import com.pattexpattex.musicgods.wait.Waiter;
 import com.sedmelluq.lava.common.tools.DaemonThreadFactory;
 import net.dv8tion.jda.api.Permission;
@@ -36,6 +36,7 @@ import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
@@ -174,6 +175,31 @@ public class ApplicationManager extends ListenerAdapter {
         });
     }
 
+    @Override
+    public void onCommandAutoCompleteInteraction(@NotNull CommandAutoCompleteInteractionEvent event) {
+        MessageDispatcher messageDispatcher = new AutocompleteMessageDispatcherImpl(event);
+        Member member = event.getMember();
+        
+        if (event.getGuild() == null || member == null || member.getUser().isBot()) return;
+        
+        GuildContext context = getGuildContext(event.getGuild());
+        
+        interfaceManager.getAutocompleteManager().dispatch(context.filter(AutocompleteInterface.class),
+                event, new AutocompleteResponseHandler() {
+            
+            @Override
+            public void notFound(CommandAutoCompleteInteractionEvent event, String identifier) {
+                messageDispatcher.sendMessage("This is an unknown / unregistered autocomplete option.");
+            }
+    
+            @Override
+            public void autocompleteException(CommandAutoCompleteInteractionEvent event, String identifier, Throwable throwable) {
+                messageDispatcher.sendMessage(String.format("Option threw an exception: %s", throwable));
+                log.error("Autocomplete option ({}) threw an exception", identifier, throwable);
+            }
+        });
+    }
+    
     @Override
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
         InteractionMessageDispatcher messageDispatcher = new ButtonMessageDispatcherImpl(event);

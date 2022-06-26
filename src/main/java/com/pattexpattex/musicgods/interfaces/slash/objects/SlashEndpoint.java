@@ -61,7 +61,8 @@ public class SlashEndpoint {
 
         for (int i = 1; i < methodParameters.length; i++) {
             Parameter par = methodParameters[i];
-            com.pattexpattex.musicgods.annotations.slash.parameter.SlashParameter slashParameter = par.getAnnotation(com.pattexpattex.musicgods.annotations.slash.parameter.SlashParameter.class);
+            com.pattexpattex.musicgods.annotations.slash.parameter.Parameter slashParameter =
+                    par.getAnnotation(com.pattexpattex.musicgods.annotations.slash.parameter.Parameter.class);
 
             if (slashParameter == null) {
                 commandParameters.add(new SlashParameter(par.getName(), ParameterType.ofClass(par.getType()), true));
@@ -77,7 +78,8 @@ public class SlashEndpoint {
 
         if (permissions == null)
             return new SlashEndpoint(path, commandParameters,
-                    new Permissions(com.pattexpattex.musicgods.annotations.Permissions.DEFAULT, com.pattexpattex.musicgods.annotations.Permissions.SELF_DEFAULT), controller, method);
+                    new Permissions(com.pattexpattex.musicgods.annotations.Permissions.DEFAULT,
+                            com.pattexpattex.musicgods.annotations.Permissions.SELF_DEFAULT), controller, method);
 
         return new SlashEndpoint(path, commandParameters,
                 new Permissions(permissions.value(), permissions.self()), controller, method);

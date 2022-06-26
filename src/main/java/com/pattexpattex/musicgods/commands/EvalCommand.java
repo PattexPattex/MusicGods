@@ -4,7 +4,7 @@ import com.pattexpattex.musicgods.ApplicationManager;
 import com.pattexpattex.musicgods.Bot;
 import com.pattexpattex.musicgods.GuildContext;
 import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
-import com.pattexpattex.musicgods.annotations.slash.parameter.SlashParameter;
+import com.pattexpattex.musicgods.annotations.slash.parameter.Parameter;
 import com.pattexpattex.musicgods.interfaces.button.objects.Button;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterface;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterfaceFactory;
@@ -37,7 +37,7 @@ public class EvalCommand implements SlashInterface {
 
     @SlashHandle(path = "system/eval", description = "Run arbitrary Kotlin code on the bot.")
     public void evalCommand(SlashCommandInteractionEvent event0,
-                            @SlashParameter(description = "The code to run.") String code) {
+                            @Parameter(description = "The code to run.") String code) {
         if (!manager.getBot().getConfig().getEval()) {
             event0.reply("Eval is not enabled.").setEphemeral(true).queue();
             return;
@@ -111,11 +111,9 @@ public class EvalCommand implements SlashInterface {
             OtherUtils.getLog().warn("Eval failed", thr);
         }
         else if (response instanceof RestAction<?> action) {
-            action.queue(s -> {
-                        event.getHook().editOriginal(
-                                String.format("Eval success! **|** Took %sms **|** Rest action returned `%s`",
-                                        elapsed, s)).setActionRows().queue();
-                    },
+            action.queue(s -> event.getHook().editOriginal(
+                    String.format("Eval success! **|** Took %sms **|** Rest action returned `%s`",
+                            elapsed, s)).setActionRows().queue(),
                     thr -> {
                         event.getHook().editOriginal(String.format("Eval failed. **|** Took %sms **|** What went wrong: `%s`",
                                 elapsed, thr)).setActionRows().queue();

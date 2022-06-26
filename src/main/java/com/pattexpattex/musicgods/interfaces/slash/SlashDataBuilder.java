@@ -1,9 +1,10 @@
 package com.pattexpattex.musicgods.interfaces.slash;
 
 import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
+import com.pattexpattex.musicgods.annotations.slash.autocomplete.Autocomplete;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Choice;
+import com.pattexpattex.musicgods.annotations.slash.parameter.Parameter;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Range;
-import com.pattexpattex.musicgods.annotations.slash.parameter.SlashParameter;
 import com.pattexpattex.musicgods.interfaces.slash.objects.ParameterType;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashCommand;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashPath;
@@ -14,7 +15,6 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 
 import static com.pattexpattex.musicgods.interfaces.slash.objects.SlashCommand.DEFAULT_DESCRIPTION;
 
@@ -51,17 +51,18 @@ public class SlashDataBuilder {
     }
 
     private static void buildOptions(OptionData[] arr, Method method) {
-        Parameter[] parameters = method.getParameters();
+        java.lang.reflect.Parameter[] parameters = method.getParameters();
 
         if (arr.length > 25)
             throw new IndexOutOfBoundsException("A command cannot have more than 25 parameters");
 
         for (int i = 1; i < parameters.length; i++) {
-            Parameter par = parameters[i];
+            java.lang.reflect.Parameter par = parameters[i];
 
-            @Nullable SlashParameter parameter = par.getAnnotation(SlashParameter.class);
+            @Nullable Parameter parameter = par.getAnnotation(Parameter.class);
             @Nullable Choice choice = par.getAnnotation(Choice.class);
             @Nullable Range range = par.getAnnotation(Range.class);
+            @Nullable Autocomplete autocomplete = par.getAnnotation(Autocomplete.class);
 
             ParameterType type = ParameterType.ofClass(par.getType());
             String name = par.getName();
@@ -70,7 +71,7 @@ public class SlashDataBuilder {
             if (parameter != null && !parameter.description().isBlank()) description = parameter.description();
 
             OptionData optionData = new OptionData(type.getOptionType(), name, description);
-
+            
             if (parameter != null)
                 optionData.setRequired(parameter.required());
             else
@@ -90,7 +91,9 @@ public class SlashDataBuilder {
                     for (int j = 0; j < keys.length; j++)
                         optionData.addChoice(keys[j], values[j]);
             }
-
+            else if (autocomplete != null && optionData.getType().canSupportChoices())
+                optionData.setAutoComplete(true);
+            
             if (range != null && type != ParameterType.INTEGER && type != ParameterType.LONG && type != ParameterType.DOUBLE) {
                 throw new IllegalArgumentException(String.format("Incompatible types, parameter %s (%s) is annotated with %s",
                         name, par.getType().getSimpleName(), range.getClass().getSimpleName()));

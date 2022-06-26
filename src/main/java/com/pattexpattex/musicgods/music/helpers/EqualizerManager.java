@@ -6,8 +6,9 @@ import com.pattexpattex.musicgods.GuildContext;
 import com.pattexpattex.musicgods.annotations.button.ButtonHandle;
 import com.pattexpattex.musicgods.annotations.slash.Grouped;
 import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
+import com.pattexpattex.musicgods.annotations.slash.parameter.Choice;
+import com.pattexpattex.musicgods.annotations.slash.parameter.Parameter;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Range;
-import com.pattexpattex.musicgods.annotations.slash.parameter.SlashParameter;
 import com.pattexpattex.musicgods.interfaces.button.objects.Button;
 import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterface;
 import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterfaceFactory;
@@ -115,8 +116,8 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
 
     @SlashHandle(path = "equalizer/manual", description = "Set a custom equalizer gain at a given band.")
     public void eqBand(SlashCommandInteractionEvent event,
-                       @SlashParameter(description = "A band.") @Range(min = 0, max = 14) int band,
-                       @SlashParameter(description = "The gain.") @Range(min = -0.25d, max = 1.0d) double value) {
+                       @Parameter(description = "A band.") @Range(min = 0, max = 14) int band,
+                       @Parameter(description = "The gain.") @Range(min = -0.25d, max = 1.0d) double value) {
         checkManager.check(() -> {
             if (isEqualizerEnabled()) {
                 setGain(band, (float) value);
@@ -130,7 +131,7 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
     }
 
     @SlashHandle(path = "equalizer/bassboost", description = "Enable bass boost.")
-    public void eqBass(SlashCommandInteractionEvent event, @SlashParameter(description = "The bass boost offset, positive or negative.", required = false) Double offset) {
+    public void eqBass(SlashCommandInteractionEvent event, @Parameter(description = "The bass boost offset, positive or negative.", required = false) Double offset) {
         checkManager.check(() -> {
             if (offset == null)
                 useGains(BASS_BOOST, 0.0f);

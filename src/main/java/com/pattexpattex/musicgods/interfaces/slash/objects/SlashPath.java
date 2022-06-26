@@ -1,5 +1,7 @@
 package com.pattexpattex.musicgods.interfaces.slash.objects;
 
+import java.util.StringJoiner;
+
 public class SlashPath {
 
     private final String[] elements;
@@ -7,7 +9,7 @@ public class SlashPath {
     public SlashPath(String compiled) {
         this.elements = compiled.split("/");
 
-        if (this.elements.length > 3)
+        if (this.elements.length > 4)
             throw new IllegalArgumentException(compiled + " is not a valid path");
     }
 
@@ -26,15 +28,18 @@ public class SlashPath {
     public boolean isSubcommandGroup() {
         return elements.length == 3;
     }
+    
+    public boolean isCommandOption() {
+        return elements.length == 4;
+    }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-
+        StringJoiner joiner = new StringJoiner("/");
+        
         for (String element : elements)
-            sb.append(element).append("/");
+            joiner.add(element);
 
-        sb.deleteCharAt(sb.length() - 1);
-        return sb.toString();
+        return joiner.toString();
     }
 }

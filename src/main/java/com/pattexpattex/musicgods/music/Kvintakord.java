@@ -6,8 +6,8 @@ import com.pattexpattex.musicgods.annotations.Permissions;
 import com.pattexpattex.musicgods.annotations.slash.Grouped;
 import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Choice;
+import com.pattexpattex.musicgods.annotations.slash.parameter.Parameter;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Range;
-import com.pattexpattex.musicgods.annotations.slash.parameter.SlashParameter;
 import com.pattexpattex.musicgods.config.storage.GuildConfig;
 import com.pattexpattex.musicgods.interfaces.BaseInterface;
 import com.pattexpattex.musicgods.interfaces.BaseInterfaceFactory;
@@ -114,8 +114,8 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     @SlashHandle(path = "play", description = "Plays a track.")
     @Permissions(self = { Permission.MESSAGE_SEND, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK })
     public void play(SlashCommandInteractionEvent event,
-                     @SlashParameter(description = "URL/query.") String identifier,
-                     @SlashParameter(description = "A search engine.", required = false) @Choice(choices = { "youtube", "spotify" }) String engine) {
+                     @Parameter(description = "URL/query.") String identifier,
+                     @Parameter(description = "A search engine.", required = false) @Choice(choices = { "youtube", "spotify" }) String engine) {
         checkManager.check(() -> {
             event.deferReply().queue();
             addTrack(event, identifier, engine, false);
@@ -136,7 +136,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
 
     @SlashHandle(path = "queue", description = "Gets the current queue along with a simple GUI to control music.")
     @Permissions(self = { Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS })
-    public void queue(SlashCommandInteractionEvent event, @SlashParameter(description = "Page of the printed queue.", required = false) Integer page) {
+    public void queue(SlashCommandInteractionEvent event, @Parameter(description = "Page of the printed queue.", required = false) Integer page) {
         checkManager.deferredCheck(() -> {
             outputChannel.set(event.getTextChannel());
     
@@ -147,7 +147,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     }
 
     @SlashHandle(path = "loop", description = "Sets/gets the loop mode.")
-    public void loop(SlashCommandInteractionEvent event, @SlashParameter(description = "New loop mode.", required = false) @Choice(choices = { "off", "all", "single" }) String mode) {
+    public void loop(SlashCommandInteractionEvent event, @Parameter(description = "New loop mode.", required = false) @Choice(choices = { "off", "all", "single" }) String mode) {
         checkManager.check(() -> {
             if (mode == null) {
                 event.reply(String.format("Current loop mode is %s %s.",
@@ -168,7 +168,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     }
 
     @SlashHandle(path = "volume", description = "Sets/gets the current volume.")
-    public void volume(SlashCommandInteractionEvent event, @SlashParameter(description = "New volume.", required = false) @Range(min = 0, max = 1000) Integer volume) {
+    public void volume(SlashCommandInteractionEvent event, @Parameter(description = "New volume.", required = false) @Range(min = 0, max = 1000) Integer volume) {
         checkManager.check(() -> {
             if (volume == null) {
                 event.reply(String.format("Current volume is %d.", scheduler.getVolume())).queue();
@@ -183,8 +183,8 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     
     @SlashHandle(path = "search", description = "Searches sources with a query.")
     public void search(SlashCommandInteractionEvent event,
-                       @SlashParameter(description = "Search query.") String identifier,
-                       @SlashParameter(description = "A search engine.", required = false) @Choice(choices = { "youtube", "spotify" }) String engine) {
+                       @Parameter(description = "Search query.") String identifier,
+                       @Parameter(description = "A search engine.", required = false) @Choice(choices = { "youtube", "spotify" }) String engine) {
         checkManager.deferredCheck(() -> playerManager.loadItemOrdered(this, cleanIdentifier(identifier, engine), new AudioLoadResultHandler() {
     
             @Override
@@ -230,8 +230,8 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
 
     @SlashHandle(path = "marker/set", description = "Sets a marker on the current track.", baseDescription = "Commands for custom track markers.")
     public void mark(SlashCommandInteractionEvent event,
-                     @SlashParameter(description = "Timestamp to set the marker at. Use the pattern HH:mm:ss.") String timestamp,
-                     @SlashParameter(description = "Display text on the marker.") String text) {
+                     @Parameter(description = "Timestamp to set the marker at. Use the pattern HH:mm:ss.") String timestamp,
+                     @Parameter(description = "Display text on the marker.") String text) {
         checkManager.check(() -> {
             long position;
             try {
@@ -264,7 +264,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     }
     
     @SlashHandle(path = "lyrics", description = "Gets the lyrics of the current/given track.")
-    public void lyrics(SlashCommandInteractionEvent event, @SlashParameter(description = "Track to search the lyrics for.", required = false) String identifier) {
+    public void lyrics(SlashCommandInteractionEvent event, @Parameter(description = "Track to search the lyrics for.", required = false) String identifier) {
         if (identifier == null) {
             checkManager.deferredCheck(() -> scheduler.forCurrentTrack(track -> retrieveLyrics(event.getHook(), lyricsHelper.buildSearchQuery(track))),
                     event, false, CheckManager.Check.PLAYING);
