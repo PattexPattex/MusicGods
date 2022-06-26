@@ -6,37 +6,41 @@ import com.pattexpattex.musicgods.GuildContext;
 import com.pattexpattex.musicgods.annotations.button.ButtonHandle;
 import com.pattexpattex.musicgods.annotations.slash.Grouped;
 import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
-import com.pattexpattex.musicgods.annotations.slash.parameter.Choice;
+import com.pattexpattex.musicgods.annotations.slash.autocomplete.Autocomplete;
+import com.pattexpattex.musicgods.annotations.slash.autocomplete.AutocompleteHandle;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Parameter;
-import com.pattexpattex.musicgods.annotations.slash.parameter.Range;
 import com.pattexpattex.musicgods.interfaces.button.objects.Button;
 import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterface;
 import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterfaceFactory;
+import com.pattexpattex.musicgods.interfaces.slash.autocomplete.objects.AutocompleteInterface;
+import com.pattexpattex.musicgods.interfaces.slash.autocomplete.objects.AutocompleteInterfaceFactory;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterface;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterfaceFactory;
-import com.pattexpattex.musicgods.music.DjCommands;
 import com.pattexpattex.musicgods.music.Kvintakord;
 import com.pattexpattex.musicgods.util.BotEmoji;
+import com.pattexpattex.musicgods.util.OtherUtils;
 import com.pattexpattex.musicgods.util.builders.EqualizerGuiBuilder;
 import com.sedmelluq.discord.lavaplayer.filter.equalizer.EqualizerFactory;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.interactions.AutoCompleteQuery;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.pattexpattex.musicgods.music.helpers.EqualizerManager.GainPresets.BASS_BOOST;
-
-@Grouped(DjCommands.GROUP_ID)
-public class EqualizerManager implements SlashInterface, ButtonInterface {
+@Grouped(Kvintakord.GROUP_ID)
+public class EqualizerManager implements SlashInterface, ButtonInterface, AutocompleteInterface {
 
     public static final String[] GAIN_ASSIGNMENTS_FREQ = { "25", "40", "63", "100", "160",
             "250", "400", "630", "1k", "1.6k", "2.5k", "4k", "6.3k", "10k", "16k" };
@@ -73,7 +77,7 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
     /* ---- Commands ---- */
     
     // TODO: 14. 06. 2022 Implement better command inheritance
-    @SlashHandle(path = "equalizer/enable", description = "Enables the equalizer.", baseDescription = "Equalizer related commands.")
+    @SlashHandle(path = "eq/enable", description = "Enables the equalizer.", baseDescription = "Equalizer related commands.")
     public void eqEnable(SlashCommandInteractionEvent event) {
         checkManager.check(() -> {
             if (enableEqualizer())
@@ -85,7 +89,7 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
         }, event);
     }
 
-    @SlashHandle(path = "equalizer/disable", description = "Disables the equalizer.")
+    @SlashHandle(path = "eq/disable", description = "Disables the equalizer.")
     public void eqDisable(SlashCommandInteractionEvent event) {
         checkManager.check(() -> {
             if (disableEqualizer())
@@ -97,7 +101,7 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
         }, event);
     }
 
-    @SlashHandle(path = "equalizer/reset", description = "Resets the equalizer to its default.")
+    @SlashHandle(path = "eq/reset", description = "Resets the equalizer to its default.")
     public void eqReset(SlashCommandInteractionEvent event) {
         checkManager.check(() -> {
             resetEqualizer();
@@ -106,41 +110,46 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
         }, event);
     }
 
-    @SlashHandle(path = "equalizer/gui", description = "Control the equalizer with a GUI.")
+    @SlashHandle(path = "eq/gui", description = "Control the equalizer with a GUI.")
     public void equalizer(SlashCommandInteractionEvent event) {
-        checkManager.check(() -> {
+        checkManager.deferredCheck(() -> {
             enableEqualizer();
             updateEqualizerMessage(event.getHook());
-        }, event);
+        }, event, false);
     }
-
-    @SlashHandle(path = "equalizer/manual", description = "Set a custom equalizer gain at a given band.")
-    public void eqBand(SlashCommandInteractionEvent event,
-                       @Parameter(description = "A band.") @Range(min = 0, max = 14) int band,
-                       @Parameter(description = "The gain.") @Range(min = -0.25d, max = 1.0d) double value) {
+    
+    @SlashHandle(path = "eq/preset", description = "Uses a equalizer preset.")
+    public void equalizerPreset(SlashCommandInteractionEvent event,
+                                @Parameter(name = "preset", description = "A equalizer preset.") @Autocomplete String id,
+                                @Parameter(description = "A offset for the equalizer, positive or negative.", required = false) Double offset) {
         checkManager.check(() -> {
-            if (isEqualizerEnabled()) {
-                setGain(band, (float) value);
-                event.reply(String.format("Set gain at %d to %s.", band, value)).queue();
+            GainPreset preset = GainPreset.getByName(id);
+            
+            if (preset == GainPreset.OFF) {
+                resetEqualizer();
+                event.reply("Reset the equalizer.").queue();
             }
-            else
-                event.reply("Equalizer is not enabled.").queue();
-    
+            else if (offset == null) {
+                useGains(preset.getArray(), 0.0f);
+                event.reply(String.format("Using equalizer preset **%s**.", preset.getName())).queue();
+            }
+            else {
+                useGains(preset.getArray(), offset.floatValue());
+                event.reply(String.format("Using equalizer preset **%s** with an offset of **%s**.", preset.getName(), offset)).queue();
+            }
+            
             updateEqualizerMessage();
         }, event);
     }
-
-    @SlashHandle(path = "equalizer/bassboost", description = "Enable bass boost.")
-    public void eqBass(SlashCommandInteractionEvent event, @Parameter(description = "The bass boost offset, positive or negative.", required = false) Double offset) {
-        checkManager.check(() -> {
-            if (offset == null)
-                useGains(BASS_BOOST, 0.0f);
-            else
-                useGains(BASS_BOOST, offset.floatValue());
     
-            updateEqualizerMessage();
-            event.reply("Enabled bass boost with an offset of " + (offset == null ? 0.0 : offset)).queue();
-        }, event);
+    @AutocompleteHandle("eq/preset/preset")
+    public void equalizerPresetAutocomplete(CommandAutoCompleteInteractionEvent event, AutoCompleteQuery query) {
+        Command.Choice[] choices = Arrays.stream(GainPreset.values())
+                .sorted(Comparator.comparingInt(preset -> OtherUtils.levenshteinDistance(preset.getName(), query.getValue())))
+                .map(preset -> new Command.Choice(preset.getName(), preset.getName()))
+                .toArray(Command.Choice[]::new);
+        
+        event.replyChoices(choices).queue();
     }
 
 
@@ -289,9 +298,8 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
     }
 
     public void resetEqualizer() {
-        for (int i = 0; i < BASS_BOOST.length; i++) {
+        for (int i = 0; i < GainPreset.OFF.getArray().length; i++)
             equalizer.setGain(i, 0.0f);
-        }
     }
 
     public boolean isEqualizerEnabled() {
@@ -419,35 +427,50 @@ public class EqualizerManager implements SlashInterface, ButtonInterface {
     public static float roundToStep(float value) {
         return GAIN_STEP * Math.round(value / GAIN_STEP);
     }
-
-    public static float getGainOrDefault(EqualizerFactory equalizer, int position, int defaultPos) {
-        return (0 <= position && position <= 15 ? equalizer.getGain(position) : equalizer.getGain(defaultPos));
+    
+    public enum GainPreset {
+        
+        BASS_BOOST("bass-boost", new float[]{ 0.2f, 0.15f, 0.1f, 0.05f, 0.0f, -0.05f, -0.1f, -0.1f, -0.1f, -0.1f, -0.1f, -0.1f, -0.1f, -0.1f, -0.1f }),
+        DEFAULT("home-stereo", new float[]{ 0.12f, 0.1f, 0.06666667f, 0.033333335f, 0.0f, -0.041666668f, -0.083333336f, -0.125f, -0.06666666f, -0.008333333f, 0.05f, 0.11666666f, 0.18333334f, 0.25f, 0.25f }),
+        OFF("none", new float[]{ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f })
+        ;
+        
+        private final String name;
+        private final float[] arr;
+        
+        GainPreset(String name, float[] arr) {
+            this.name = name;
+            this.arr = arr;
+        }
+        
+        public float[] getArray() {
+            return arr;
+        }
+        
+        public String getName() {
+            return name;
+        }
+        
+        public static GainPreset getByName(String name) {
+            for (GainPreset preset : values())
+                if (preset.getName().equals(name))
+                    return preset;
+            
+            return OFF;
+        }
     }
-
+    
     public static class Factory implements SlashInterfaceFactory<EqualizerManager>,
-            ButtonInterfaceFactory<EqualizerManager> {
-
-
+            ButtonInterfaceFactory<EqualizerManager>, AutocompleteInterfaceFactory<EqualizerManager> {
+        
         @Override
         public Class<EqualizerManager> getControllerClass() {
             return EqualizerManager.class;
         }
-
+        
         @Override
         public EqualizerManager create(ApplicationManager manager, GuildContext context, Guild guild) {
             return new EqualizerManager(new EqualizerFactory(), context.getController(Kvintakord.class));
         }
-    }
-
-    public static class GainPresets {
-
-        private GainPresets() {}
-
-        public static final float[] BASS_BOOST = { 0.2f, 0.15f, 0.1f, 0.05f, 0.0f, -0.05f, -0.1f, -0.1f, -0.1f, -0.1f,
-                -0.1f, -0.1f, -0.1f, -0.1f, -0.1f };
-
-        // TODO: 15. 05. 2022 Implement this and add more presets
-        public static final float[] DEFAULT = { 0.12f, 0.1f, 0.05f, 0.0f, 0.0f, 0.0f, -0.05f, -0.1f, 0.05f, 0.0f, 0.05f,
-                0.1f, 0.125f, 0.15f, 0.2f };
     }
 }
