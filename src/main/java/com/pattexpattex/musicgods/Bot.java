@@ -99,6 +99,7 @@ public class Bot {
 
         random = new Random();
         config = new Config();
+        guildConfig = new GuildConfigManager(this);
         applicationManager = new ApplicationManager(this);
 
         try {
@@ -123,8 +124,7 @@ public class Bot {
         catch (InterruptedException e) {
             log.error("Interrupted while waiting for a ReadyEvent", e);
         }
-
-        guildConfig = new GuildConfigManager(this);
+        
         jda.getPresence().setPresence(config.getStatus(), config.getActivity());
 
         String latest = OtherUtils.getLatestVersion();

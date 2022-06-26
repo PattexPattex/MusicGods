@@ -4,6 +4,7 @@ import com.pattexpattex.musicgods.Bot;
 import com.pattexpattex.musicgods.music.audio.LoopMode;
 import com.pattexpattex.musicgods.music.audio.ShuffleMode;
 import com.pattexpattex.musicgods.util.OtherUtils;
+import net.dv8tion.jda.api.JDA;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -34,8 +35,7 @@ public class GuildConfigManager {
             loaded.keySet().forEach((id) -> {
                 long longId = Long.parseLong(id);
 
-                if (bot.getJDA().getGuildById(longId) != null)
-                    configMap.put(longId, new GuildConfig(loaded.getJSONObject(id), longId, this));
+                configMap.put(longId, new GuildConfig(loaded.getJSONObject(id), longId, this));
             });
 
             write();
@@ -51,6 +51,14 @@ public class GuildConfigManager {
 
     public void removeConfig(long id) {
         configMap.remove(id);
+        write();
+    }
+    
+    public void cleanupGuilds(JDA jda) {
+        for (long id : configMap.keySet())
+            if (jda.getGuildById(id) == null)
+                configMap.remove(id);
+        
         write();
     }
 

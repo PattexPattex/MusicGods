@@ -290,9 +290,8 @@ public class ApplicationManager extends ListenerAdapter {
 
     @Override
     public void onGuildReady(@NotNull GuildReadyEvent event) {
-        if (!Bot.isLazy()) {
+        if (!Bot.isLazy())
             interfaceManager.getSlashManager().updateCommands(event.getGuild());
-        }
     }
 
     @Override
@@ -305,6 +304,7 @@ public class ApplicationManager extends ListenerAdapter {
         log.info("Available guilds: {} | Unavailable guilds: {} | Total guilds: {}",
                 event.getGuildAvailableCount(), event.getGuildUnavailableCount(), event.getGuildTotalCount());
 
+        bot.getGuildConfig().cleanupGuilds(event.getJDA());
         bot.checkForUpdates();
     }
 
