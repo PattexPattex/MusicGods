@@ -2,6 +2,7 @@ package com.pattexpattex.musicgods.util;
 
 import com.pattexpattex.musicgods.Bot;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.internal.utils.tuple.Pair;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -16,8 +17,7 @@ import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
 
 public class OtherUtils {
 
@@ -115,5 +115,46 @@ public class OtherUtils {
 
     public static long epoch() {
         return System.currentTimeMillis() / 1000L;
+    }
+    
+    public static List<String> sortByQuery(List<String> list, String query) {
+        List<String> copy = new ArrayList<>(list);
+        
+        copy.sort(Comparator.comparingInt(o -> levenshteinDistance(o, query)));
+        
+        return copy;
+    }
+    
+    public static Comparator<String> sortByQuery(String query) {
+        return Comparator.comparingInt(o -> levenshteinDistance(o, query));
+    }
+    
+    private static final Map<Pair<String, String>, Integer> levenshteinCache = new HashMap<>();
+    
+    public static int levenshteinDistance(String s1, String s2) {
+        if (s1.isEmpty())
+            return s2.length();
+        
+        if (s2.isEmpty())
+            return s1.length();
+        
+        Integer cached = levenshteinCache.get(Pair.of(s1, s2));
+        
+        if (cached != null)
+            return cached;
+        
+        int sub = levenshteinDistance(s1.substring(1), s2.substring(1)) + costOfSubstitute(s1.charAt(0), s2.charAt(0));
+        int ins = levenshteinDistance(s1, s2.substring(1)) + 1;
+        int del = levenshteinDistance(s1.substring(1), s2) + 1;
+        
+        int res = Math.min(sub, Math.min(ins, del));
+        
+        levenshteinCache.put(Pair.of(s1, s2), res);
+        
+        return res;
+    }
+    
+    private static int costOfSubstitute(char c1, char c2) {
+        return c1 == c2 ? 0 : 1;
     }
 }
