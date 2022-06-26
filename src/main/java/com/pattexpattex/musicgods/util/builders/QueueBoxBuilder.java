@@ -17,7 +17,7 @@ import net.dv8tion.jda.api.interactions.components.ItemComponent;
 
 import java.util.List;
 
-import static com.pattexpattex.musicgods.util.FormatUtils.formatTimeFromMillis;
+import static com.pattexpattex.musicgods.util.FormatUtils.formatTimestamp;
 
 public class QueueBoxBuilder {
 
@@ -85,8 +85,8 @@ public class QueueBoxBuilder {
         double percent = (double) (position) / (double) (duration);
         String line = "**" + FormatUtils.CODE + FormatUtils.buildLine(percent, QueueManager.TRACK_LINE_SIZE);
 
-        line += FormatUtils.CODE + " " + formatTimeFromMillis(position) +
-                " / " + formatTimeFromMillis(duration) + "**\n";
+        line += FormatUtils.CODE + " " + formatTimestamp(position) +
+                " / " + formatTimestamp(duration) + "**\n";
 
         return line;
     }

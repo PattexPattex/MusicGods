@@ -145,7 +145,7 @@ public class TrackMetadata {
     public static String getBasicInfo(AudioTrack track) {
         if (track == null) return null;
         
-        return String.format("**%s** by %s (`%s`)", getName(track), getAuthor(track), FormatUtils.formatTimeFromMillis(track.getDuration()));
+        return String.format("**%s** by %s (`%s`)", getName(track), getAuthor(track), FormatUtils.formatTimestamp(track.getDuration()));
     }
     
     public static String getBasicInfoWithUrls(AudioTrack track) {
@@ -168,7 +168,7 @@ public class TrackMetadata {
         else
             builder.append(String.format("[%s](%s)", getAuthor(track), authorUrl));
         
-        builder.append(String.format(" (`%s`)", FormatUtils.formatTimeFromMillis(track.getDuration())));
+        builder.append(String.format(" (`%s`)", FormatUtils.formatTimestamp(track.getDuration())));
         
         return builder.toString();
     }

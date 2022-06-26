@@ -196,7 +196,7 @@ public class DjCommands implements SlashInterface {
             }
             else {
                 track.setPosition(track.getPosition() + (duration * 1000L));
-                event.reply(String.format("Started playing from %s.", FormatUtils.formatTimeFromMillis(track.getPosition()))).queue();
+                event.reply(String.format("Started playing from %s.", FormatUtils.formatTimestamp(track.getPosition()))).queue();
                 kvintakord.updateQueueMessage();
             }
         }), String.format("Fast forward the current track for %d seconds?", duration), event);
@@ -211,7 +211,7 @@ public class DjCommands implements SlashInterface {
             }
             else {
                 track.setPosition(Math.max(0, track.getPosition() - (duration * 1000L)));
-                event.reply(String.format("Started playing from %s.", FormatUtils.formatTimeFromMillis(track.getPosition()))).queue();
+                event.reply(String.format("Started playing from %s.", FormatUtils.formatTimestamp(track.getPosition()))).queue();
                 kvintakord.updateQueueMessage();
             }
         }), String.format("Rewind the current track for %d seconds?", duration), event);
@@ -221,7 +221,7 @@ public class DjCommands implements SlashInterface {
     public void seek(SlashCommandInteractionEvent event, @SlashParameter(description = "Timestamp to play from, formatted like this - hh:mm:ss.") String timestamp) {
         long position;
         try {
-            position = FormatUtils.decodeTimeToSeconds(timestamp) * 1000;
+            position = FormatUtils.parseTime(timestamp) * 1000;
         } catch (NumberFormatException e) {
             event.reply("Invalid timestamp. Please format it like this - `hh:mm:ss / h:mm:ss / mm:ss / m:ss`.").queue();
             return;
@@ -236,10 +236,10 @@ public class DjCommands implements SlashInterface {
             }
             else {
                 track.setPosition(position);
-                event.getHook().editOriginal(String.format("Set position to %s.", FormatUtils.formatTimeFromMillis(position))).queue();
+                event.getHook().editOriginal(String.format("Set position to %s.", FormatUtils.formatTimestamp(position))).queue();
                 kvintakord.updateQueueMessage();
             }
-        }), String.format("Play the current track from %s?", FormatUtils.formatTimeFromMillis(position)), event);
+        }), String.format("Play the current track from %s?", FormatUtils.formatTimestamp(position)), event);
     }
     
     public Kvintakord getKvintakord() {

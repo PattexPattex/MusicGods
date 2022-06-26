@@ -89,8 +89,8 @@ public class TrackDownloader {
 
                 YoutubeDLResponse response = YoutubeDL.execute(request, (progress, eta) -> hook.editOriginal(
                         String.format("Download progress: `%s` (`%s%%`) **|** Estimated time left: `%s`",
-                                FormatUtils.buildFilledLine(((double) progress) / 100, 12), progress,
-                                FormatUtils.formatTimeFromMillis(eta * 1000L))).queue());
+                                FormatUtils.buildFullLine(((double) progress) / 100, 12), progress,
+                                FormatUtils.formatTimestamp(eta * 1000L))).queue());
 
                 log.info("Completed download: {}", response.getCommand());
                 File file = new File(String.format("temp/%s.mp3", id));
@@ -108,7 +108,7 @@ public class TrackDownloader {
 
                 hook.sendFile(file).setContent(String.format("%s **|** URL: <%s> **|** File size: `%s MB` **|** Elapsed time: `%s`",
                         TrackMetadata.getBasicInfo(track), TrackMetadata.getUri(track), bytesToMegaBytes(file.length()),
-                        FormatUtils.formatTimeFromMillis(response.getElapsedTime()))).queue(
+                        FormatUtils.formatTimestamp(response.getElapsedTime()))).queue(
                                 s -> {
                                     if (!file.delete())
                                         log.warn("Failed deleting '{}'", file.getName());

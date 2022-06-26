@@ -156,14 +156,14 @@ public class ApplicationManager extends ListenerAdapter {
             public void restricted(SlashCommandInteractionEvent event, SlashPath path,
                                    Permission[] required, Permission[] found) {
                 messageDispatcher.sendMessage(String.format("You have insufficient permissions - Missing: %s",
-                        FormatUtils.permissionsArrayToString(OtherUtils.differenceInArray(required, found))));
+                        FormatUtils.permissionsToString(OtherUtils.differenceInArray(required, found))));
             }
 
             @Override
             public void selfRestricted(SlashCommandInteractionEvent event, SlashPath path,
                                        Permission[] required, Permission[] found) {
                 messageDispatcher.sendMessage(String.format("I have insufficient permissions - Missing: %s",
-                        FormatUtils.permissionsArrayToString(OtherUtils.differenceInArray(required, found))));
+                        FormatUtils.permissionsToString(OtherUtils.differenceInArray(required, found))));
             }
 
             @Override
@@ -219,14 +219,14 @@ public class ApplicationManager extends ListenerAdapter {
             public void restricted(SelectMenuInteractionEvent event, String identifier,
                                    Permission[] required, Permission[] found) {
                 messageDispatcher.sendMessage(String.format("You have insufficient permissions - Missing: %s",
-                        FormatUtils.permissionsArrayToString(OtherUtils.differenceInArray(required, found))));
+                        FormatUtils.permissionsToString(OtherUtils.differenceInArray(required, found))));
             }
 
             @Override
             public void selfRestricted(SelectMenuInteractionEvent event, String identifier,
                                        Permission[] required, Permission[] found) {
                 messageDispatcher.sendMessage(String.format("I have insufficient permissions - Missing: %s",
-                        FormatUtils.permissionsArrayToString(OtherUtils.differenceInArray(required, found))));
+                        FormatUtils.permissionsToString(OtherUtils.differenceInArray(required, found))));
             }
 
             @Override

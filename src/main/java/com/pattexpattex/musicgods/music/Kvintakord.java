@@ -230,15 +230,15 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
 
     @SlashHandle(path = "marker/set", description = "Sets a marker on the current track.", baseDescription = "Commands for custom track markers.")
     public void mark(SlashCommandInteractionEvent event,
-                     @SlashParameter(description = "Timestamp to set the marker at, formatted like this - (hh):mm:ss.") String timestamp,
+                     @SlashParameter(description = "Timestamp to set the marker at, formatted like this - HH:mm:ss.") String timestamp,
                      @SlashParameter(description = "Display text on the marker.") String text) {
         checkManager.check(() -> {
             long position;
             try {
-                position = FormatUtils.decodeTimeToSeconds(timestamp) * 1000;
+                position = FormatUtils.parseTime(timestamp) * 1000;
             }
             catch (NumberFormatException e) {
-                event.reply("Invalid timestamp. Please format it like this - `hh:mm:ss / h:mm:ss / mm:ss / m:ss`.").queue();
+                event.reply("Invalid timestamp. Please format it like this - `HH:mm:ss / H:mm:ss / mm:ss / m:ss`.").queue();
                 return;
             }
     
