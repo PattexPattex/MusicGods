@@ -230,7 +230,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
 
     @SlashHandle(path = "marker/set", description = "Sets a marker on the current track.", baseDescription = "Commands for custom track markers.")
     public void mark(SlashCommandInteractionEvent event,
-                     @SlashParameter(description = "Timestamp to set the marker at, formatted like this - HH:mm:ss.") String timestamp,
+                     @SlashParameter(description = "Timestamp to set the marker at. Use the pattern HH:mm:ss.") String timestamp,
                      @SlashParameter(description = "Display text on the marker.") String text) {
         checkManager.check(() -> {
             long position;
@@ -238,7 +238,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
                 position = FormatUtils.parseTime(timestamp) * 1000;
             }
             catch (NumberFormatException e) {
-                event.reply("Invalid timestamp. Please format it like this - `HH:mm:ss / H:mm:ss / mm:ss / m:ss`.").queue();
+                event.reply("Invalid timestamp. Use the pattern `HH:mm:ss`.").queue();
                 return;
             }
     
@@ -248,7 +248,8 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
                 }
                 else {
                     track.setMarker(new TrackMarker(position, state ->
-                            event.getChannel().sendMessage(String.format("Hit marker [%s], cause [%s].", text, state.name())).queue()));
+                            event.getChannel().sendMessage(String.format("Hit marker [%s] **|** Cause: `%s`", text, state.name())).queue()));
+                    event.reply(String.format("Added a marker [%s] at %s.", text, FormatUtils.formatTimestamp(position))).queue();
                 }
             });
         }, event);

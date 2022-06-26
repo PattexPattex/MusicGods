@@ -218,12 +218,13 @@ public class DjCommands implements SlashInterface {
     }
     
     @SlashHandle(path = "seek", description = "Starts playing the current track from the given position.")
-    public void seek(SlashCommandInteractionEvent event, @SlashParameter(description = "Timestamp to play from, formatted like this - hh:mm:ss.") String timestamp) {
+    public void seek(SlashCommandInteractionEvent event, @SlashParameter(description = "Timestamp to play from, use the pattern HH:mm:ss.") String timestamp) {
         long position;
         try {
             position = FormatUtils.parseTime(timestamp) * 1000;
-        } catch (NumberFormatException e) {
-            event.reply("Invalid timestamp. Please format it like this - `hh:mm:ss / h:mm:ss / mm:ss / m:ss`.").queue();
+        }
+        catch (NumberFormatException e) {
+            event.reply("Invalid timestamp. Use the pattern `HH:mm:ss`.").queue();
             return;
         }
         
