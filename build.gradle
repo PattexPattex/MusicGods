@@ -63,6 +63,10 @@ compileJava {
     options.encoding 'utf-8'
 }
 
+compileTestJava {
+    options.encoding 'utf-8'
+}
+
 test {
     useJUnitPlatform()
 }
