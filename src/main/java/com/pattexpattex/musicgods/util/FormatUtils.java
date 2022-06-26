@@ -17,7 +17,6 @@ public class FormatUtils {
     public static final String LINE = "▬";
     public static final String CIRCLE = "🔘";
     public static final String BLOCK = "█";
-    public static final String CODEBLOCK = "```";
     public static final String CODE = "`";
     
     public static final Pattern HTTP_PATTERN = Pattern.compile("^([<|*_`]{0,3})(http|https)://[a-zA-Z\\d\\-.]+\\.[a-zA-Z]{2,6}(/\\S*)?([>|*_`]{0,3})$");
@@ -104,6 +103,10 @@ public class FormatUtils {
     @Contract(value = "null -> fail", pure = true)
     public static long parseTime(String time) {
         Date date = DateUtils.parseDate(time, DATE_PARSER_PATTERNS);
+        
+        if (date == null)
+            throw new NumberFormatException();
+        
         return date.getTime() / 1000;
     }
 }
