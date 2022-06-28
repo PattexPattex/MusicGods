@@ -141,7 +141,7 @@ public class TrackDownloader {
         manager.registerSourceManager(new SpotifyAudioSourceManager(kvintakord.getApplicationManager().getSpotifyManager(), new YoutubeAudioSourceManager()));
         manager.registerSourceManager(new YoutubeAudioSourceManager());
         
-        CompletableFuture<TrackDownloader> future = CompletableFuture.completedFuture(null);
+        CompletableFuture<TrackDownloader> future = new CompletableFuture<>();
         
         manager.loadItemOrdered(hook, kvintakord.cleanIdentifier(identifier, engine), new FunctionalResultHandler(
                 track -> future.complete(new TrackDownloader(hook, parseYoutubeUrl(track), track)),
