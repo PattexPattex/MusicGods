@@ -48,10 +48,10 @@ public class DjCommands implements SlashInterface {
             case "get" -> {
                 Role oldRole = kvintakord.getConfig().getDj();
                 
-                if (role == null)
+                if (oldRole == null)
                     event.reply("No DJ role is set.").queue();
                 else
-                    event.reply(String.format("Current DJ role is **%s**.", role.getName())).queue();
+                    event.reply(String.format("Current DJ role is **%s**.", oldRole.getName())).queue();
             }
             case "set" -> {
                 if (role == null) {

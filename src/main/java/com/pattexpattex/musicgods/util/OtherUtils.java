@@ -82,12 +82,12 @@ public class OtherUtils {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(clazz.getResourceAsStream(name))))) {
             StringBuilder sb = new StringBuilder();
 
-            reader.lines().forEach(line -> sb.append("\r\n").append(line));
+            reader.lines().forEach(line -> sb.append(System.lineSeparator()).append(line));
 
             return sb.toString().trim();
         }
         catch (IOException | NullPointerException e) {
-            log.error("Failed loading resource {}", name, e);
+            log.error("Failed loading resource '{}'", name, e);
             return null;
         }
     }
@@ -97,7 +97,7 @@ public class OtherUtils {
             return is.readAllBytes();
         }
         catch (IOException | NullPointerException e) {
-            log.error("Failed loading resource {}", name, e);
+            log.error("Failed loading resource '{}'", name, e);
             return null;
         }
     }

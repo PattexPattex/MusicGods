@@ -76,7 +76,6 @@ public class EqualizerManager implements SlashInterface, ButtonInterface, Autoco
 
     /* ---- Commands ---- */
     
-    // TODO: 14. 06. 2022 Implement better command inheritance
     @SlashHandle(path = "eq/enable", description = "Enables the equalizer.", baseDescription = "Equalizer related commands.")
     public void eqEnable(SlashCommandInteractionEvent event) {
         checkManager.check(() -> {
@@ -111,7 +110,7 @@ public class EqualizerManager implements SlashInterface, ButtonInterface, Autoco
     }
 
     @SlashHandle(path = "eq/gui", description = "Control the equalizer with a GUI.")
-    public void equalizer(SlashCommandInteractionEvent event) {
+    public void eqGui(SlashCommandInteractionEvent event) {
         checkManager.deferredCheck(() -> {
             enableEqualizer();
             updateEqualizerMessage(event.getHook());
@@ -119,7 +118,7 @@ public class EqualizerManager implements SlashInterface, ButtonInterface, Autoco
     }
     
     @SlashHandle(path = "eq/preset", description = "Uses a equalizer preset.")
-    public void equalizerPreset(SlashCommandInteractionEvent event,
+    public void eqPreset(SlashCommandInteractionEvent event,
                                 @Parameter(name = "preset", description = "A equalizer preset.") @Autocomplete String id,
                                 @Parameter(description = "A offset for the equalizer, positive or negative.", required = false) Double offset) {
         checkManager.check(() -> {
@@ -143,8 +142,9 @@ public class EqualizerManager implements SlashInterface, ButtonInterface, Autoco
     }
     
     @AutocompleteHandle("eq/preset/preset")
-    public void equalizerPresetAutocomplete(CommandAutoCompleteInteractionEvent event, AutoCompleteQuery query) {
+    public void eqPresetAutocomplete(CommandAutoCompleteInteractionEvent event, AutoCompleteQuery query) {
         Command.Choice[] choices = Arrays.stream(GainPreset.values())
+                .limit(25)
                 .sorted(Comparator.comparingInt(preset -> OtherUtils.levenshteinDistance(preset.getName(), query.getValue())))
                 .map(preset -> new Command.Choice(preset.getName(), preset.getName()))
                 .toArray(Command.Choice[]::new);

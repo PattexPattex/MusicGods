@@ -106,14 +106,14 @@ public class TrackDownloader {
                     return null;
                 }
 
-                hook.sendFile(file).setContent(String.format("%s **|** URL: <%s> **|** File size: `%s MB` **|** Elapsed time: `%s`",
+                hook.sendFile(file, TrackMetadata.getName(track)).setContent(String.format("%s **|** URL: <%s> **|** File size: `%s MB` **|** Elapsed time: `%s`",
                         TrackMetadata.getBasicInfo(track), TrackMetadata.getUri(track), bytesToMegaBytes(file.length()),
                         FormatUtils.formatTimestamp(response.getElapsedTime()))).queue(
                                 s -> {
                                     if (!file.delete())
                                         log.warn("Failed deleting '{}'", file.getName());
                                 }, f -> {
-                                    if (! file.delete())
+                                    if (!file.delete())
                                         log.warn("Failed deleting '{}'", file.getName());
                                 });
 
