@@ -2,7 +2,7 @@ package com.pattexpattex.musicgods.interfaces.slash.objects;
 
 import com.pattexpattex.musicgods.annotations.slash.Grouped;
 import com.pattexpattex.musicgods.util.BotEmoji;
-import net.dv8tion.jda.api.entities.Emoji;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 import javax.annotation.Nullable;
 import java.util.*;

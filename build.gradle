@@ -25,7 +25,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'net.dv8tion:JDA:5.0.0-alpha.12' //JDA
+    implementation 'net.dv8tion:JDA:5.0.0-alpha.13' //JDA
     implementation 'ch.qos.logback:logback-classic:1.2.11' //Logging
     implementation 'org.json:json:20220320' //org.json for config
 

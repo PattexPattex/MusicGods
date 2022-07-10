@@ -1,5 +1,6 @@
 package com.pattexpattex.musicgods.interfaces.slash;
 
+import com.pattexpattex.musicgods.annotations.Permissions;
 import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
 import com.pattexpattex.musicgods.annotations.slash.autocomplete.Autocomplete;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Choice;
@@ -8,6 +9,9 @@ import com.pattexpattex.musicgods.annotations.slash.parameter.Range;
 import com.pattexpattex.musicgods.interfaces.slash.objects.ParameterType;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashCommand;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashPath;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
@@ -44,6 +48,8 @@ public class SlashDataBuilder {
             buildCommand(data, method);
             data.setDescription(handle.description());
         }
+        
+        buildPermissions(data, method);
     }
 
     public static SlashCommand.Data buildEmpty(SlashPath path) {
@@ -51,13 +57,13 @@ public class SlashDataBuilder {
     }
 
     private static void buildOptions(OptionData[] arr, Method method) {
-        java.lang.reflect.Parameter[] parameters = method.getParameters();
+        var parameters = method.getParameters();
 
         if (arr.length > 25)
             throw new IndexOutOfBoundsException("A command cannot have more than 25 parameters");
 
         for (int i = 1; i < parameters.length; i++) {
-            java.lang.reflect.Parameter par = parameters[i];
+            var par = parameters[i];
 
             @Nullable Parameter parameter = par.getAnnotation(Parameter.class);
             @Nullable Choice choice = par.getAnnotation(Choice.class);
@@ -94,11 +100,11 @@ public class SlashDataBuilder {
             else if (autocomplete != null && optionData.getType().canSupportChoices())
                 optionData.setAutoComplete(true);
             
-            if (range != null && type != ParameterType.INTEGER && type != ParameterType.LONG && type != ParameterType.DOUBLE) {
+            if (range != null && optionData.getType() != OptionType.NUMBER && optionData.getType() != OptionType.INTEGER) {
                 throw new IllegalArgumentException(String.format("Incompatible types, parameter %s (%s) is annotated with %s",
                         name, par.getType().getSimpleName(), range.getClass().getSimpleName()));
             }
-            else if (range != null && (type == ParameterType.INTEGER || type == ParameterType.LONG)) {
+            else if (range != null && (optionData.getType() == OptionType.NUMBER || optionData.getType() == OptionType.INTEGER)) {
                 optionData.setRequiredRange((long) setInRange(range.min()), (long) setInRange(range.max()));
             }
             else if (range != null) {
@@ -123,5 +129,19 @@ public class SlashDataBuilder {
         OptionData[] arr = new OptionData[method.getParameterCount() - 1];
         buildOptions(arr, method);
         data.addOptions(arr);
+    }
+    
+    private static void buildPermissions(SlashCommandData data, Method method) {
+        Permissions permissions = method.getAnnotation(Permissions.class);
+        
+        if (permissions == null)
+            return;
+        
+        if (Permission.getRaw(permissions.command()) == 0)
+            data.setDefaultPermissions(DefaultMemberPermissions.ENABLED);
+        else if (Permission.getRaw(permissions.command()) == Permission.ADMINISTRATOR.getRawValue())
+            data.setDefaultPermissions(DefaultMemberPermissions.DISABLED);
+        else
+            data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(permissions.command()));
     }
 }

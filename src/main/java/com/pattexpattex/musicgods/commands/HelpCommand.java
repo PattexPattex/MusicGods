@@ -17,8 +17,8 @@ import com.pattexpattex.musicgods.util.FormatUtils;
 import com.pattexpattex.musicgods.util.OtherUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Emoji;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -44,7 +44,7 @@ public class HelpCommand implements SlashInterface, ButtonInterface, SelectionIn
         Emoji emoji = group.getEmoji();
 
         EmbedBuilder eb = FormatUtils.embed()
-                .setTitle(String.format("%s %s", group.getName(), (emoji != null ? emoji.getAsMention() : "")));
+                .setTitle(String.format("%s %s", group.getName(), (emoji != null ? emoji.getFormatted() : "")));
 
         String desc = group.getDescription();
 

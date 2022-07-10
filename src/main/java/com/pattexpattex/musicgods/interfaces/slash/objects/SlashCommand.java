@@ -107,6 +107,7 @@ public class SlashCommand {
 
         public Data(@NotNull String name, @NotNull String description) {
             super(name, description);
+            setGuildOnly(true);
         }
 
         public void mergeSubcommandGroup(SubcommandGroupData data) {

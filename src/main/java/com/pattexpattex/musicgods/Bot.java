@@ -101,10 +101,11 @@ public class Bot {
         config = new Config();
         guildConfig = new GuildConfigManager(this);
         applicationManager = new ApplicationManager(this);
+        applicationManager.cleanTemp();
 
         try {
             jda = JDABuilder.createDefault(config.getToken(), GUILD_MESSAGES, GUILD_VOICE_STATES)
-                    .disableCache(CacheFlag.EMOTE)
+                    .disableCache(CacheFlag.EMOJI, CacheFlag.STICKER)
                     .enableCache(CacheFlag.VOICE_STATE)
                     .setActivity(Activity.watching("me load"))
                     .setStatus((config.getStatus() == OnlineStatus.INVISIBLE || config.getStatus() == OnlineStatus.OFFLINE ? OnlineStatus.INVISIBLE : OnlineStatus.DO_NOT_DISTURB))

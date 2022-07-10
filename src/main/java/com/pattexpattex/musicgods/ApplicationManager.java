@@ -334,7 +334,7 @@ public class ApplicationManager extends ListenerAdapter {
 
     /* ---- Other methods ---- */
 
-    private void cleanTemp() {
+    public void cleanTemp() {
         File dir = new File("temp");
 
         if (!dir.exists()) return;

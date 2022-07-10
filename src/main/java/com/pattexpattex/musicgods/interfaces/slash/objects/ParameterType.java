@@ -3,7 +3,6 @@ package com.pattexpattex.musicgods.interfaces.slash.objects;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.utils.AttachedFile;
 
 import java.util.function.Function;
 
@@ -59,10 +58,9 @@ public enum ParameterType {
         else if (klass == GuildMessageChannel.class) return ParameterType.MESSAGE_CHANNEL;
         else throw new IllegalArgumentException("Bad type " + klass.getSimpleName());
     }
-
-    @SuppressWarnings("unchecked")
-    public <T> T apply(OptionMapping mapping) {
-        return ((Class<T>) klass).cast(function.apply(mapping));
+    
+    public Object apply(OptionMapping mapping) {
+        return function.apply(mapping);
     }
 
     public OptionType getOptionType() {

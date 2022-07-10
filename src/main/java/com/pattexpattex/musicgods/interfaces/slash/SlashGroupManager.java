@@ -2,9 +2,11 @@ package com.pattexpattex.musicgods.interfaces.slash;
 
 import com.pattexpattex.musicgods.annotations.slash.Grouped;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashGroup;
-import net.dv8tion.jda.api.entities.Emoji;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SlashGroupManager {
 

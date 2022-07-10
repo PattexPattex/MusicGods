@@ -1,5 +1,6 @@
 package com.pattexpattex.musicgods.interfaces.slash;
 
+import com.pattexpattex.musicgods.Bot;
 import com.pattexpattex.musicgods.exceptions.WrongArgumentException;
 import com.pattexpattex.musicgods.interfaces.InterfaceManagerConnector;
 import com.pattexpattex.musicgods.interfaces.slash.objects.*;
@@ -8,10 +9,13 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -76,7 +80,24 @@ public class SlashInterfaceManager {
     }
 
     public void updateCommands(Guild guild) {
-        SlashCommandUpdater.updateCommands(guild, commands);
+        //guild.updateCommands().queue();
+        guild.updateCommands()
+                .addCommands(commands.values()
+                        .stream()
+                        .map(SlashCommand::getData)
+                        .toArray(SlashCommandData[]::new))
+                .queue();
+    }
+    
+    @Nullable
+    public Command retrieveCommandFromPath(Guild guild, SlashPath path) {
+        return guild.retrieveCommands()
+                .complete()
+                .stream()
+                .filter(command -> command.getApplicationIdLong() == Bot.getApplicationId() &&
+                        command.getName().equals(path.getBase()))
+                .findAny()
+                .orElse(null);
     }
 
     public SlashGroupManager getGroupManager() {
@@ -103,8 +124,6 @@ public class SlashInterfaceManager {
     }
 
     private Object parseSingleArg(ParameterType type, OptionMapping m, boolean required) {
-        if (required && m == null) //The user did nothing wrong, should not be caught
-            throw new NullPointerException("Method parameter name and command structure option name are not the same");
         if (!required && m == null)
             return null;
 
