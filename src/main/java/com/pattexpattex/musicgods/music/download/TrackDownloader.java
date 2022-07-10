@@ -61,6 +61,7 @@ public class TrackDownloader {
     private final InteractionHook hook;
 
     private TrackDownloader(InteractionHook hook, String url, AudioTrack track) {
+        TrackMetadata.buildMetadata(track);
         this.id = RANDOM.nextLong(Long.MAX_VALUE);
         this.url = url;
         this.track = track;
@@ -106,9 +107,10 @@ public class TrackDownloader {
                     return null;
                 }
 
-                hook.sendFile(file, TrackMetadata.getName(track)).setContent(String.format("%s **|** URL: <%s> **|** File size: `%s MB` **|** Elapsed time: `%s`",
+                hook.editOriginal(String.format("%s **|** URL: <%s> **|** File size: `%s MB` **|** Elapsed time: `%s`",
                         TrackMetadata.getBasicInfo(track), TrackMetadata.getUri(track), bytesToMegaBytes(file.length()),
-                        FormatUtils.formatTimestamp(response.getElapsedTime()))).queue(
+                        FormatUtils.formatTimestamp(response.getElapsedTime())))
+                        .addFile(file, TrackMetadata.getName(track) + "mp3").queue(
                                 s -> {
                                     if (!file.delete())
                                         log.warn("Failed deleting '{}'", file.getName());

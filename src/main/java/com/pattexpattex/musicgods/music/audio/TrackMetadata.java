@@ -5,6 +5,7 @@ import com.pattexpattex.musicgods.util.FormatUtils;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import se.michaelthelin.spotify.model_objects.specification.Album;
 import se.michaelthelin.spotify.model_objects.specification.Image;
@@ -66,19 +67,6 @@ public class TrackMetadata {
         this.isSpotify = false;
     }
 
-    /*
-    private TrackMetadata(String name, String author, String uri,
-                          @Nullable String image, @Nullable String album,
-                          @Nullable String authorUrl) {
-        this.name = name;
-        this.author = author;
-        this.uri = uri;
-        this.image = image;
-        this.album = album;
-        this.authorUrl = authorUrl;
-    }
-    */
-
     @Contract(mutates = "param1")
     public static void buildMetadata(AudioTrack track) {
         if (track instanceof SpotifyAudioTrack) return;
@@ -88,12 +76,12 @@ public class TrackMetadata {
     }
 
     @Contract(mutates = "param1")
-    public static void buildSpotifyMetadata(SpotifyAudioTrack track, Track backingTrack) {
+    public static void buildMetadata(@NotNull SpotifyAudioTrack track, Track backingTrack) {
         track.setUserData(new TrackMetadata(backingTrack));
     }
 
     @Contract(mutates = "param1")
-    public static void buildSpotifyMetadata(SpotifyAudioTrack track, TrackSimplified backingTrack, Album backingAlbum) {
+    public static void buildMetadata(SpotifyAudioTrack track, TrackSimplified backingTrack, Album backingAlbum) {
         track.setUserData(new TrackMetadata(backingTrack, backingAlbum));
     }
 
@@ -172,41 +160,4 @@ public class TrackMetadata {
         
         return builder.toString();
     }
-
-    /*
-    @Override
-    public String toString() {
-        return "TrackMetadata{" +
-                "name='" + name + '\'' +
-                ", author='" + author + '\'' +
-                ", uri='" + uri + '\'' +
-                ", image='" + image + '\'' +
-                ", album='" + album + '\'' +
-                ", authorUrl='" + authorUrl + '\'' +
-                '}';
-    }
-
-    private static final Pattern TO_STRING_PATTERN = Pattern.compile("TrackMetadata\\{(name='.+', )(author='.+', )(uri='.+', )(image=(?:'.+'|null), )(album=(?:'.+'|null), )(authorUrl=(?:'.+'|null))}");
-
-
-    public static TrackMetadata fromString(String input) throws NullPointerException, IllegalArgumentException {
-        Objects.requireNonNull(input);
-
-        Matcher matcher = TO_STRING_PATTERN.matcher(input);
-        if (!matcher.matches()) throw new IllegalArgumentException();
-
-        return new TrackMetadata(extractValue(matcher.group(1)),
-                extractValue(matcher.group(2)),
-                extractValue(matcher.group(3)),
-                extractValue(matcher.group(4)),
-                extractValue(matcher.group(5)),
-                extractValue(matcher.group(6)));
-    }
-
-    private static String extractValue(String entry) {
-        String value = entry.substring(entry.indexOf('\'') + 1, entry.lastIndexOf('\''));
-
-        return "null".equals(value) ? null : value;
-    }
-    */
 }
