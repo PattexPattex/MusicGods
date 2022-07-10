@@ -110,7 +110,7 @@ public class TrackDownloader {
                 hook.editOriginal(String.format("%s **|** URL: <%s> **|** File size: `%s MB` **|** Elapsed time: `%s`",
                         TrackMetadata.getBasicInfo(track), TrackMetadata.getUri(track), bytesToMegaBytes(file.length()),
                         FormatUtils.formatTimestamp(response.getElapsedTime())))
-                        .addFile(file, TrackMetadata.getName(track) + "mp3").queue(
+                        .addFile(file, TrackMetadata.getName(track) + ".mp3").queue(
                                 s -> {
                                     if (!file.delete())
                                         log.warn("Failed deleting '{}'", file.getName());
