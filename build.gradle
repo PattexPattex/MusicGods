@@ -70,3 +70,8 @@ compileTestJava {
 test {
     useJUnitPlatform()
 }
+
+shadowJar {
+    dependsOn(clean)
+    archiveFileName = "${project.name}-${project.version}.jar"
+}
