@@ -99,7 +99,7 @@ public class DjCommands implements SlashInterface {
                      @Parameter(description = "Position to move the track to.") int to) {
         
         checkManager.fairCheck(() -> {
-            String info = TrackMetadata.getBasicInfo(kvintakord.getScheduler().getCurrentTrack());
+            String info = TrackMetadata.getBasicInfo(kvintakord.getScheduler().getQueue().get(from - 1));
             
             switch (kvintakord.getScheduler().moveTrack(from - 1, to - 1)) {
                 case 1 -> event.getHook().editOriginal(String.format("Parameter from (%d) is invalid.", from)).queue();
