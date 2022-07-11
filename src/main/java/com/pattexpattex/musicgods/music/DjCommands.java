@@ -114,7 +114,7 @@ public class DjCommands implements SlashInterface {
     @SlashHandle(path = "remove", description = "Removes a track.")
     public void remove(SlashCommandInteractionEvent event, @Parameter(description = "Position of the track to remove.") int position) {
         checkManager.fairCheck(() -> {
-            String info = TrackMetadata.getBasicInfo(kvintakord.getScheduler().getCurrentTrack());
+            String info = TrackMetadata.getBasicInfo(kvintakord.getScheduler().getQueue().get(position - 1));
             
             if (kvintakord.getScheduler().removeTrack(position - 1))
                 event.getHook().editOriginal(String.format("Removed %s at position %d from queue.", info, position)).queue();
