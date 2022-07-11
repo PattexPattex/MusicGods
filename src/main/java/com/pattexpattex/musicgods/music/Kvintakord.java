@@ -189,6 +189,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     
             @Override
             public void trackLoaded(AudioTrack track) {
+                TrackMetadata.buildMetadata(track);
                 String prompt = String.format("Loaded %s from search. Play it now?", TrackMetadata.getBasicInfo(track));
     
                 new Confirmation.Builder(prompt, event, result -> {
@@ -210,6 +211,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
                         .setChoices(playlist.getTracks()
                                 .stream()
                                 .limit(4)
+                                .peek(TrackMetadata::buildMetadata)
                                 .map(TrackMetadata::getBasicInfo)
                                 .toList())
                         .setOnCancel(result -> {})
