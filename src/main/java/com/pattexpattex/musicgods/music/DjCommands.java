@@ -104,7 +104,7 @@ public class DjCommands implements SlashInterface {
             switch (kvintakord.getScheduler().moveTrack(from - 1, to - 1)) {
                 case 1 -> event.getHook().editOriginal(String.format("Parameter from (%d) is invalid.", from)).queue();
                 case 2 -> event.getHook().editOriginal(String.format("Parameter to (%d) is invalid.", to)).queue();
-                default -> event.getHook().editOriginal(String.format("Moved **%s** from %d to %d.", info, from, to)).queue();
+                default -> event.getHook().editOriginal(String.format("Moved %s from %d to %d.", info, from, to)).queue();
             }
     
             kvintakord.updateQueueMessage();
@@ -117,7 +117,7 @@ public class DjCommands implements SlashInterface {
             String info = TrackMetadata.getBasicInfo(kvintakord.getScheduler().getCurrentTrack());
             
             if (kvintakord.getScheduler().removeTrack(position - 1))
-                event.getHook().editOriginal(String.format("Removed **%s** at position %d from queue.", info, position)).queue();
+                event.getHook().editOriginal(String.format("Removed %s at position %d from queue.", info, position)).queue();
             else
                 event.getHook().editOriginal(String.format("Position (%d) is invalid.", position)).queue();
             
