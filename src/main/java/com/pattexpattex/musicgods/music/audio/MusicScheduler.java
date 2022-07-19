@@ -324,7 +324,7 @@ public class MusicScheduler extends AudioEventAdapter {
     @Override
     public void onTrackStuck(AudioPlayer player, AudioTrack track, long thresholdMs) {
         log.warn("Track {} got stuck for >{}ms", TrackMetadata.getUri(track), thresholdMs);
-        messageDispatcher.sendMessage(String.format("Track **%s** got stuck, skipping.", TrackMetadata.getName(track)));
+        messageDispatcher.sendMessage(String.format("Track **%s** got stuck, skipping.", TrackMetadata.getBasicInfo(track)));
         startNext(false);
     }
 
