@@ -22,10 +22,8 @@ public class SystemCommands implements SlashInterface {
 
     @SlashHandle(path = "system/ping", description = "Checks my ping.", baseDescription = "System commands.")
     public void ping(SlashCommandInteractionEvent event) {
-        long ping = System.currentTimeMillis();
-        event.deferReply()
-                .flatMap(h -> h.editOriginal(String.format("My ping is: %dms **|** Gateway ping: %dms", System.currentTimeMillis() - ping, event.getJDA().getGatewayPing())))
-                .queue();
+        event.deferReply().flatMap(hook -> hook.getJDA().getRestPing()).queue(ping ->
+                event.getHook().editOriginal(String.format("My ping is: %dms **|** Gateway ping: %dms", ping, event.getJDA().getGatewayPing())).queue());
     }
 
     @SlashHandle(path = "system/shutdown", description = "Safely shuts down this bot.")
