@@ -5,6 +5,7 @@ import com.pattexpattex.musicgods.music.Kvintakord;
 import com.pattexpattex.musicgods.util.dispatchers.MessageDispatcher;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import org.jetbrains.annotations.NotNull;
@@ -310,6 +311,16 @@ public class MusicScheduler extends AudioEventAdapter {
         }
     }
 
+    @Override
+    public void onTrackException(AudioPlayer player, AudioTrack track, FriendlyException exception) {
+        log.error("Something broke while playing a track", exception);
+        
+        if (queue.isEmpty()) {
+            messageDispatcher.sendMessage(String.format("Something broke while playing **%s**, stopping playback.", TrackMetadata.getBasicInfo(track)));
+            stop(false);
+        }
+    }
+    
     @Override
     public void onTrackStuck(AudioPlayer player, AudioTrack track, long thresholdMs) {
         log.warn("Track {} got stuck for >{}ms", TrackMetadata.getUri(track), thresholdMs);
