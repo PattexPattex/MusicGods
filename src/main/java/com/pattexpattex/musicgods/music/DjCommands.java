@@ -7,6 +7,7 @@ import com.pattexpattex.musicgods.annotations.slash.Grouped;
 import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Choice;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Parameter;
+import com.pattexpattex.musicgods.annotations.slash.parameter.Range;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterface;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterfaceFactory;
 import com.pattexpattex.musicgods.music.audio.ShuffleMode;
@@ -19,6 +20,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import static com.pattexpattex.musicgods.music.DjCommands.GROUP_ID;
 
@@ -81,7 +83,7 @@ public class DjCommands implements SlashInterface {
     
     @SlashHandle(path = "skip", description = "Skips the current track.")
     public void skip(SlashCommandInteractionEvent event,
-                     @Parameter(description = "Position to skip to.", required = false) Integer position) {
+                     @Parameter(description = "Position to skip to.", required = false) @Range(min = 1, max = OptionData.MAX_POSITIVE_NUMBER) Integer position) {
         checkManager.fairCheck(() -> {
             if (position != null) {
                 if (!kvintakord.getScheduler().skipTrack(position - 1))
@@ -95,8 +97,8 @@ public class DjCommands implements SlashInterface {
     
     @SlashHandle(path = "move", description = "Moves a track.")
     public void move(SlashCommandInteractionEvent event,
-                     @Parameter(description = "Position of the track to move.") int from,
-                     @Parameter(description = "Position to move the track to.") int to) {
+                     @Parameter(description = "Position of the track to move.") @Range(min = 1, max = OptionData.MAX_POSITIVE_NUMBER) int from,
+                     @Parameter(description = "Position to move the track to.") @Range(min = 1, max = OptionData.MAX_POSITIVE_NUMBER) int to) {
         
         checkManager.fairCheck(() -> {
             String info = TrackMetadata.getBasicInfo(kvintakord.getScheduler().getQueue().get(from - 1));
@@ -112,7 +114,8 @@ public class DjCommands implements SlashInterface {
     }
     
     @SlashHandle(path = "remove", description = "Removes a track.")
-    public void remove(SlashCommandInteractionEvent event, @Parameter(description = "Position of the track to remove.") int position) {
+    public void remove(SlashCommandInteractionEvent event,
+                       @Parameter(description = "Position of the track to remove.") @Range(min = 1, max = OptionData.MAX_POSITIVE_NUMBER) int position) {
         checkManager.fairCheck(() -> {
             String info = TrackMetadata.getBasicInfo(kvintakord.getScheduler().getQueue().get(position - 1));
             
@@ -161,7 +164,8 @@ public class DjCommands implements SlashInterface {
     }
     
     @SlashHandle(path = "shuffle", description = "Sets/gets the shuffle mode.")
-    public void shuffle(SlashCommandInteractionEvent event, @Parameter(description = "New shuffle mode", required = false) @Choice(choices = { "shuffled", "normal" }) String mode) {
+    public void shuffle(SlashCommandInteractionEvent event,
+                        @Parameter(description = "New shuffle mode", required = false) @Choice(choices = { "shuffled", "normal" }) String mode) {
         if (mode == null) {
             checkManager.check(() -> {
                 ShuffleMode shuffle = kvintakord.getScheduler().getShuffle();
@@ -189,7 +193,8 @@ public class DjCommands implements SlashInterface {
     }
     
     @SlashHandle(path = "forward", description = "Fast forwards the current track for some seconds.")
-    public void forward(SlashCommandInteractionEvent event, @Parameter(description = "Seconds to fast forward.") int duration) {
+    public void forward(SlashCommandInteractionEvent event,
+                        @Parameter(description = "Seconds to fast forward.") @Range(min = 0, max = OptionData.MAX_POSITIVE_NUMBER) int duration) {
         checkManager.fairCheck(() -> kvintakord.getScheduler().forCurrentTrack(track -> {
             if (!track.isSeekable()) {
                 event.reply("Current track is not seekable.").queue();
@@ -204,7 +209,7 @@ public class DjCommands implements SlashInterface {
     
     @SlashHandle(path = "rewind", description = "Rewinds the current track for some seconds.")
     public void backward(SlashCommandInteractionEvent event,
-                         @Parameter(description = "Seconds to rewind.") int duration) {
+                         @Parameter(description = "Seconds to rewind.") @Range(min = 0, max = OptionData.MAX_POSITIVE_NUMBER) int duration) {
         checkManager.fairCheck(() -> kvintakord.getScheduler().forCurrentTrack(track -> {
             if (!track.isSeekable()) {
                 event.reply("Current track is not seekable.").queue();
@@ -218,7 +223,8 @@ public class DjCommands implements SlashInterface {
     }
     
     @SlashHandle(path = "seek", description = "Starts playing the current track from the given position.")
-    public void seek(SlashCommandInteractionEvent event, @Parameter(description = "Timestamp to play from, use the pattern HH:mm:ss.") String timestamp) {
+    public void seek(SlashCommandInteractionEvent event,
+                     @Parameter(description = "Timestamp to play from, use the pattern HH:mm:ss.") String timestamp) {
         long position;
         try {
             position = FormatUtils.parseTime(timestamp) * 1000;

@@ -48,6 +48,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,7 +66,8 @@ import static com.pattexpattex.musicgods.music.Kvintakord.GROUP_ID;
 public class Kvintakord implements ButtonInterface, SlashInterface {
     
     public static final String GROUP_ID = "kvintakord";
-    public static final CheckManager.Check[] PLAY_CHECKS = { CheckManager.Check.USER_CONNECTED, CheckManager.Check.USER_DEAFENED, CheckManager.Check.SELF_MUTED, CheckManager.Check.SAME_CHANNEL_WHILE_PLAYING };
+    public static final CheckManager.Check[] PLAY_CHECKS = { CheckManager.Check.USER_CONNECTED, CheckManager.Check.USER_DEAFENED,
+            CheckManager.Check.SELF_MUTED, CheckManager.Check.SAME_CHANNEL_WHILE_PLAYING };
 
     private final ApplicationManager manager;
     private final Guild guild;
@@ -136,7 +138,8 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
 
     @SlashHandle(path = "queue", description = "Gets the current queue along with a simple GUI to control music.")
     @Permissions(self = { Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS })
-    public void queue(SlashCommandInteractionEvent event, @Parameter(description = "Page of the printed queue.", required = false) Integer page) {
+    public void queue(SlashCommandInteractionEvent event,
+                      @Parameter(description = "Page of the printed queue.", required = false) @Range(min = 1, max = OptionData.MAX_POSITIVE_NUMBER) Integer page) {
         checkManager.deferredCheck(() -> {
             outputChannel.set(event.getTextChannel());
     
@@ -147,7 +150,8 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     }
 
     @SlashHandle(path = "loop", description = "Sets/gets the loop mode.")
-    public void loop(SlashCommandInteractionEvent event, @Parameter(description = "New loop mode.", required = false) @Choice(choices = { "off", "all", "single" }) String mode) {
+    public void loop(SlashCommandInteractionEvent event,
+                     @Parameter(description = "New loop mode.", required = false) @Choice(choices = { "off", "all", "single" }) String mode) {
         checkManager.check(() -> {
             if (mode == null) {
                 event.reply(String.format("Current loop mode is %s %s.",
@@ -168,7 +172,8 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     }
 
     @SlashHandle(path = "volume", description = "Sets/gets the current volume.")
-    public void volume(SlashCommandInteractionEvent event, @Parameter(description = "New volume.", required = false) @Range(min = 0, max = 1000) Integer volume) {
+    public void volume(SlashCommandInteractionEvent event,
+                       @Parameter(description = "New volume.", required = false) @Range(min = 1, max = 1000) Integer volume) {
         checkManager.check(() -> {
             if (volume == null) {
                 event.reply(String.format("Current volume is %d.", scheduler.getVolume())).queue();
@@ -266,7 +271,8 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     }
     
     @SlashHandle(path = "lyrics", description = "Gets the lyrics of the current/given track.")
-    public void lyrics(SlashCommandInteractionEvent event, @Parameter(description = "Track to search the lyrics for.", required = false) String identifier) {
+    public void lyrics(SlashCommandInteractionEvent event,
+                       @Parameter(description = "Track to search the lyrics for.", required = false) String identifier) {
         if (identifier == null) {
             checkManager.deferredCheck(() -> scheduler.forCurrentTrack(track -> retrieveLyrics(event.getHook(), lyricsHelper.buildSearchQuery(track))),
                     event, false, CheckManager.Check.PLAYING);
