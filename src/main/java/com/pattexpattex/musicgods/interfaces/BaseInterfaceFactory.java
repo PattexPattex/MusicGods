@@ -14,7 +14,7 @@ public interface BaseInterfaceFactory<T extends BaseInterface> {
 
     default void finishSetup(ApplicationManager manager) {}
 
-    default List<BaseInterfaceFactory<? extends BaseInterface>> subInterfaces() {
+    default List<BaseInterfaceFactory<? extends BaseInterface>> getSubInterfaces() {
         return Collections.emptyList();
     }
 }

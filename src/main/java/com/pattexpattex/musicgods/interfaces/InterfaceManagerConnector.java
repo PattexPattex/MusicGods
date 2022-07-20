@@ -104,7 +104,7 @@ public class InterfaceManagerConnector {
             }
         }
 
-        for (BaseInterfaceFactory<? extends BaseInterface> sub : factory.subInterfaces()) {
+        for (BaseInterfaceFactory<? extends BaseInterface> sub : factory.getSubInterfaces()) {
             registerController(sub);
         }
     }
