@@ -144,8 +144,8 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
             outputChannel.set(event.getTextChannel());
     
             if (page != null)
-                getSubInterface(QueueManager.class).setQueueBoxPage(page);
-            getSubInterface(QueueManager.class).updateQueueMessage(event.getHook());
+                getSubInterface(QueueManager.class).setPage(page);
+            getSubInterface(QueueManager.class).updateMessage(event.getHook());
         }, event, false);
     }
 
@@ -315,7 +315,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     }
 
     public void updateQueueMessage() {
-        getSubInterface(QueueManager.class).updateQueueMessage();
+        getSubInterface(QueueManager.class).updateMessage();
     }
 
     public void connectToVoiceChannel(AudioChannel channel) {
@@ -509,41 +509,39 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
         
     }
     
-    public static class Factory implements ButtonInterfaceFactory<Kvintakord>, SlashInterfaceFactory<Kvintakord> {
-    
-
-        @Override
-        public Class<Kvintakord> getControllerClass() {
-            return Kvintakord.class;
-        }
-
-        @Override
-        public Kvintakord create(ApplicationManager manager, GuildContext context, Guild guild) {
-            return new Kvintakord(manager, context, guild);
-        }
-
-        @Override
-        public List<BaseInterfaceFactory<? extends BaseInterface>> subInterfaces() {
-            return List.of(new EqualizerManager.Factory(), new QueueManager.Factory(), new DjCommands.Factory());
-        }
-    }
-
     private class DeafenedListener extends ListenerAdapter {
-
+        
         private DeafenedListener() {}
-
+        
         @Override
         public void onGuildVoiceGuildDeafen(@NotNull GuildVoiceGuildDeafenEvent event) {
             Member member = event.getMember();
             GuildVoiceState state = member.getVoiceState();
-
+            
             if (member.getIdLong() == guild.getSelfMember().getIdLong()) {
                 if (!state.inAudioChannel() || !event.isGuildDeafened()) return;
-
+                
                 member.deafen(false).queue();
                 guild.getAudioManager().setSelfDeafened(true);
                 messageDispatcher.sendMessage("Please don't deafen me, use `/deafen` instead.");
             }
+        }
+    }
+    
+    public static class Factory implements ButtonInterfaceFactory<Kvintakord>, SlashInterfaceFactory<Kvintakord> {
+        
+        @Override
+        public Class<Kvintakord> getControllerClass() {
+            return Kvintakord.class;
+        }
+    
+        @Override
+        public Kvintakord create(ApplicationManager manager, GuildContext context, Guild guild) {
+            return new Kvintakord(manager, context, guild);
+        }
+        @Override
+        public List<BaseInterfaceFactory<? extends BaseInterface>> getSubInterfaces() {
+            return List.of(new QueueManager.Factory(), new DjCommands.Factory(), new AudioFilterManager.Factory());
         }
     }
 }
