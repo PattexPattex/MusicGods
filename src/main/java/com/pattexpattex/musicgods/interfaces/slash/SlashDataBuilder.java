@@ -110,6 +110,9 @@ public class SlashDataBuilder {
             else if (range != null) {
                 optionData.setRequiredRange(setInRange(range.min()), setInRange(range.max()));
             }
+            
+            if (optionData.getType() == OptionType.CHANNEL)
+                optionData.setChannelTypes(type.getChannelTypes());
 
             arr[i - 1] = optionData;
         }

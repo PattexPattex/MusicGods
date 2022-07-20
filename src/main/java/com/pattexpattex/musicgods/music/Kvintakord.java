@@ -74,7 +74,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     private final GuildContext context;
 
     private final MessageDispatcher messageDispatcher;
-    private final AtomicReference<TextChannel> outputChannel;
+    private final AtomicReference<MessageChannel> outputChannel;
     private final CheckManager checkManager;
     private final LyricsHelper lyricsHelper;
 
@@ -140,7 +140,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     public void queue(SlashCommandInteractionEvent event,
                       @Parameter(description = "Page of the printed queue.", required = false) @Range(min = 1, max = OptionData.MAX_POSITIVE_NUMBER) Integer page) {
         checkManager.deferredCheck(() -> {
-            outputChannel.set(event.getTextChannel());
+            outputChannel.set(event.getChannel().asGuildMessageChannel());
     
             if (page != null)
                 getSubInterface(QueueManager.class).setPage(page);
@@ -333,7 +333,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
         }
     }
 
-    public void setOutputChannel(TextChannel channel) {
+    public void setOutputChannel(MessageChannel channel) {
         outputChannel.set(channel);
     }
     
@@ -358,7 +358,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     }
     
     public void addTrack(IReplyCallback callback, String identifier, String engine, boolean first) {
-        setOutputChannel(callback.getTextChannel());
+        setOutputChannel(callback.getMessageChannel());
         AudioChannel channel = callback.getMember().getVoiceState().getChannel();
         
         playerManager.loadItemOrdered(this, cleanIdentifier(identifier, engine), new AudioLoadResultHandler() {
@@ -406,7 +406,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     }
     
     public void addTrack(IReplyCallback callback, AudioTrack track, boolean first) {
-        setOutputChannel(callback.getTextChannel());
+        setOutputChannel(callback.getMessageChannel());
         AudioChannel channel = callback.getMember().getVoiceState().getChannel();
         
         TrackMetadata.buildMetadata(track);
@@ -468,7 +468,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
         
         @Override
         public void sendMessage(String message, Consumer<Message> success, Consumer<Throwable> failure) {
-            TextChannel channel = outputChannel.get();
+            MessageChannel channel = outputChannel.get();
             
             if (channel == null) return;
             channel.sendMessage(message).queue(success, failure);
@@ -476,7 +476,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
         
         @Override
         public void sendMessage(String message) {
-            TextChannel channel = outputChannel.get();
+            MessageChannel channel = outputChannel.get();
             
             if (channel == null) return;
             channel.sendMessage(message).queue();
@@ -484,7 +484,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
         
         @Override
         public void sendMessage(Message message, Consumer<Message> success, Consumer<Throwable> failure) {
-            TextChannel channel = outputChannel.get();
+            MessageChannel channel = outputChannel.get();
             
             if (channel == null) return;
             channel.sendMessage(message).queue(success, failure);
@@ -492,7 +492,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
         
         @Override
         public void sendSuccess() {
-            TextChannel channel = outputChannel.get();
+            MessageChannel channel = outputChannel.get();
             
             if (channel == null) return;
             channel.sendMessage(BotEmoji.YES).queue();
@@ -500,7 +500,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
         
         @Override
         public void sendFailure() {
-            TextChannel channel = outputChannel.get();
+            MessageChannel channel = outputChannel.get();
             
             if (channel == null) return;
             channel.sendMessage(BotEmoji.NO).queue();

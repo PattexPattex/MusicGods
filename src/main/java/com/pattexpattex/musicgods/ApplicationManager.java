@@ -150,7 +150,7 @@ public class ApplicationManager extends ListenerAdapter {
             public void wrongParameterType(SlashCommandInteractionEvent event, SlashPath path, int index,
                                            WrongArgumentException e, SlashParameter expected) {
                 messageDispatcher.sendMessage(String.format("The argument %s is not a valid type - expected %s, got %s",
-                        expected.name(), expected.type().getKlass().getSimpleName(), e.getType().getKlass().getSimpleName()));
+                        expected.name(), expected.type().getClazz().getSimpleName(), e.getType().getClazz().getSimpleName()));
             }
 
             @Override

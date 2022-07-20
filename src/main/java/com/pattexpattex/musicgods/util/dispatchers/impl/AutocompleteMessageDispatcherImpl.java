@@ -17,26 +17,26 @@ public class AutocompleteMessageDispatcherImpl implements MessageDispatcher {
     
     @Override
     public void sendMessage(String message, Consumer<Message> success, Consumer<Throwable> failure) {
-        event.getTextChannel().sendMessage(message).queue(success, failure);
+        event.getMessageChannel().sendMessage(message).queue(success, failure);
     }
     
     @Override
     public void sendMessage(String message) {
-        event.getTextChannel().sendMessage(message).queue();
+        event.getMessageChannel().sendMessage(message).queue();
     }
     
     @Override
     public void sendMessage(Message message, Consumer<Message> success, Consumer<Throwable> failure) {
-        event.getTextChannel().sendMessage(message).queue(success, failure);
+        event.getMessageChannel().sendMessage(message).queue(success, failure);
     }
     
     @Override
     public void sendSuccess() {
-        event.getTextChannel().sendMessage(BotEmoji.YES).queue();
+        event.getMessageChannel().sendMessage(BotEmoji.YES).queue();
     }
     
     @Override
     public void sendFailure() {
-        event.getTextChannel().sendMessage(BotEmoji.NO).queue();
+        event.getMessageChannel().sendMessage(BotEmoji.NO).queue();
     }
 }
