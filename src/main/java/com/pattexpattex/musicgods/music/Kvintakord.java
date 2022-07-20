@@ -20,7 +20,6 @@ import com.pattexpattex.musicgods.music.audio.LoopMode;
 import com.pattexpattex.musicgods.music.audio.MusicScheduler;
 import com.pattexpattex.musicgods.music.audio.TrackMetadata;
 import com.pattexpattex.musicgods.music.helpers.CheckManager;
-import com.pattexpattex.musicgods.music.helpers.EqualizerManager;
 import com.pattexpattex.musicgods.music.helpers.LyricsHelper;
 import com.pattexpattex.musicgods.music.helpers.QueueManager;
 import com.pattexpattex.musicgods.music.spotify.SpotifyAudioSourceManager;
@@ -306,11 +305,11 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     }
 
     public void stop(boolean withMessage) {
-        EqualizerManager eqManager = getSubInterface(EqualizerManager.class);
         QueueManager queueManager = getSubInterface(QueueManager.class);
+        AudioFilterManager filterManager = getSubInterface(AudioFilterManager.class);
 
-        eqManager.cleanup();
         queueManager.cleanup();
+        filterManager.cleanup();
         scheduler.stop(withMessage);
     }
 

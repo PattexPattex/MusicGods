@@ -63,7 +63,7 @@ public class QueueBoxBuilder {
                 manager.buildButton("kv:loop", false),
                 manager.buildButton("kv:shuffle", false),
                 manager.buildButton("kv:clear", queue.isEmpty()),
-                manager.buildButton("kv.equalizer:gui", false),
+                manager.buildButton("kv:filters.equalizer:gui", false),
                 manager.buildButton("kv:lyrics", false));
 
         List<ItemComponent> thirdRow = (queue.size() > 20 ?
