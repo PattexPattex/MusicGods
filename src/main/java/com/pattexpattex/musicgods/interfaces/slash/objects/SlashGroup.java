@@ -14,7 +14,7 @@ public class SlashGroup {
     public static final SlashGroup UNGROUPED = new SlashGroup("ungrouped", "Ungrouped", false, "Ungrouped commands.", BotEmoji.DIVIDERS);
     public static final SlashGroup HIDDEN = new SlashGroup("hidden", null, true, null, null);
 
-    private static final String CMD_CURVE = "└";
+    private static final String CMD_CURVE = "╰";
 
     private String name;
     private final String identifier;
