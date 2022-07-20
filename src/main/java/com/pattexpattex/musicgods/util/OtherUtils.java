@@ -2,6 +2,7 @@ package com.pattexpattex.musicgods.util;
 
 import com.pattexpattex.musicgods.Bot;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -92,16 +93,6 @@ public class OtherUtils {
         }
     }
 
-    public static byte[] loadResourceBytes(Class<?> clazz, String name) {
-        try (InputStream is = Objects.requireNonNull(clazz.getResourceAsStream(name))) {
-            return is.readAllBytes();
-        }
-        catch (IOException | NullPointerException e) {
-            log.error("Failed loading resource '{}'", name, e);
-            return null;
-        }
-    }
-
     /**
      * @return Elements present in {@code base} and not present in {@code other}.
      */
@@ -125,8 +116,8 @@ public class OtherUtils {
         return copy;
     }
     
-    public static Comparator<String> sortByQuery(String query) {
-        return Comparator.comparingInt(o -> levenshteinDistance(o, query));
+    public static void deleteHook(InteractionHook hook) {
+        if (hook != null && !hook.isExpired()) hook.deleteOriginal().queue();
     }
     
     private static final Map<Pair<String, String>, Integer> levenshteinCache = new HashMap<>();
