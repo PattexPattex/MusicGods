@@ -20,11 +20,12 @@ import com.pattexpattex.musicgods.music.audio.LoopMode;
 import com.pattexpattex.musicgods.music.audio.MusicScheduler;
 import com.pattexpattex.musicgods.music.audio.TrackMetadata;
 import com.pattexpattex.musicgods.music.helpers.CheckManager;
-import com.pattexpattex.musicgods.music.helpers.LyricsHelper;
+import com.pattexpattex.musicgods.music.helpers.LyricsManager;
 import com.pattexpattex.musicgods.music.helpers.QueueManager;
 import com.pattexpattex.musicgods.music.spotify.SpotifyAudioSourceManager;
 import com.pattexpattex.musicgods.util.BotEmoji;
 import com.pattexpattex.musicgods.util.FormatUtils;
+import com.pattexpattex.musicgods.util.OtherUtils;
 import com.pattexpattex.musicgods.util.dispatchers.MessageDispatcher;
 import com.pattexpattex.musicgods.wait.confirmation.Confirmation;
 import com.pattexpattex.musicgods.wait.confirmation.ConfirmationStatus;
@@ -76,7 +77,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     private final MessageDispatcher messageDispatcher;
     private final AtomicReference<MessageChannel> outputChannel;
     private final CheckManager checkManager;
-    private final LyricsHelper lyricsHelper;
+    private final LyricsManager lyricsHelper;
 
     private final AudioPlayerManager playerManager;
     private final AudioPlayer player;
@@ -102,7 +103,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
         scheduler = new MusicScheduler(player, messageDispatcher, config, this);
 
         checkManager = new CheckManager(this);
-        lyricsHelper = new LyricsHelper();
+        lyricsHelper = new LyricsManager();
         new AloneInVoiceHandler(this);
         manager.addListener(new DeafenedListener());
 
@@ -298,8 +299,10 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
                 .exceptionally(th -> {
                     if (th instanceof TimeoutException te)
                         hook.editOriginal("Lyrics search timed out.").queue();
-                    else
+                    else {
                         hook.editOriginal("Something went wrong.").queue();
+                        OtherUtils.getLog().warn("Something broke while retrieving lyrics for '{}'", query, th);
+                    }
                     return null;
                 });
     }
@@ -444,7 +447,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
         return playerManager;
     }
 
-    public LyricsHelper getLyricsHelper() {
+    public LyricsManager getLyricsHelper() {
         return lyricsHelper;
     }
     

@@ -11,26 +11,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Queue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 import static net.dv8tion.jda.api.MessageBuilder.SplitPolicy.NEWLINE;
 
-public class LyricsHelper {
-
-    public static final String PROVIDER = Bot.getInstance().getConfig().getLyricsProvider();
-    public static final String PROVIDER_URL = getProviderUrl();
-
-    private static final Logger log = LoggerFactory.getLogger(LyricsHelper.class);
-
+public class LyricsManager {
+    
+    private static final Logger log = LoggerFactory.getLogger(LyricsManager.class);
+    
     private static final long TIMEOUT = 10000L;
-
+    
+    private final String provider;
     private final LyricsClient client;
 
-    public LyricsHelper() {
-        this.client = new LyricsClient(PROVIDER, Bot.getInstance().getApplicationManager().getExecutorService());
+    public LyricsManager() {
+        this(Bot.getInstance().getConfig().getLyricsProvider(), Bot.getInstance().getApplicationManager().getExecutorService());
+    }
+    
+    public LyricsManager(String provider) {
+        this(provider, Bot.getInstance().getApplicationManager().getExecutorService());
+    }
+    
+    public LyricsManager(String provider, Executor executor) {
+        this.provider = provider;
+        this.client = new LyricsClient(provider, executor);
     }
 
     public Lyrics getLyrics(String identifier) {
@@ -38,7 +42,7 @@ public class LyricsHelper {
             return client.getLyrics(identifier).get(TIMEOUT, TimeUnit.MILLISECONDS);
         }
         catch (InterruptedException | ExecutionException | TimeoutException e) {
-            log.warn("Failed retrieving lyrics for: {} via {}", identifier, PROVIDER, e);
+            log.warn("Failed retrieving lyrics for: {} via {}", identifier, provider, e);
             return null;
         }
     }
@@ -56,35 +60,26 @@ public class LyricsHelper {
         String content = lyrics.getContent().trim();
 
         if (content.length() > 15000)
-            return mb.setContent(String.format("Lyrics found but likely not correct: %s", lyrics.getURL())).buildAll();
+            return mb.setContent(String.format("Lyrics found but likely not correct: <%s>", lyrics.getURL())).buildAll();
 
         String[] split = content.split("\\n");
 
-        mb.appendFormat("**%s** by **%s** - %s\n\n", lyrics.getTitle(), lyrics.getAuthor(), lyrics.getURL());
+        mb.appendFormat("**%s** by **%s** - <%s>\n\n", lyrics.getTitle(), lyrics.getAuthor(), lyrics.getURL());
 
         for (String st : split)
             mb.append("> ").append(st).append("\n");
 
-        mb.appendFormat("\n_Provided by %s._", PROVIDER);
+        mb.appendFormat("\n_Provided by %s._", provider);
 
         return mb.buildAll(NEWLINE);
     }
 
     public String buildSearchQuery(AudioTrack track) {
         TrackMetadata metadata = track.getUserData(TrackMetadata.class);
-
+    
         if (metadata.isSpotify)
             return metadata.name + " " + metadata.author;
-
+    
         return metadata.name;
-    }
-
-    private static String getProviderUrl() {
-        return switch (PROVIDER) {
-            case "MusixMatch" -> "https://www.musixmatch.com/";
-            case "Genius" -> "https://genius.com/";
-            case "LyricsFreak" -> "https://www.lyricsfreak.com/";
-            default -> "https://www.azlyrics.com";
-        };
     }
 }

@@ -82,10 +82,12 @@ On the first startup, the bot should create a new `config.json` file and exit:
 | `activity/text`  | The custom part of the activity.                                                                                                                                           | `/help`           | /                                                            |
 | `spotify/id`     | Your Spotify application ID. If you don't have an application, check [this guide](https://developer.spotify.com/documentation/general/guides/authorization/app-settings/). | `null`            | /                                                            |
 | `spotify/secret` | Your Spotify application secret.                                                                                                                                           | `null`            | /                                                            |
-| `lyrics`         | A provider for lyrics. I recommend A-Z Lyrics, since it is the most accurate one.                                                                                          | `A-Z Lyrics`      | `A-Z Lyrics`, `MusixMatch`, `Genius`, `LyricsFreak`          |
+| `lyrics`         | A provider for lyrics. I recommend MusixMatch, since it is the most accurate*.                                                                                             | `MusixMatch`      | `MusixMatch`, `Genius`, `LyricsFreak`                        |
 | `alone`          | The timeout in seconds before the bot leaves a voice channel when it is alone.                                                                                             | `300` - 5 minutes | /                                                            |
 
 **Warning: Leave `eval` set to `false` if you don't know what you are doing. This is used purely for debugging. If someone wants you to enable this, there is an 11/10 chance they are trying to scam you.**
+
+_*The bot previously supported A-Z Lyrics, but its search now implemented protection from bots._
 
 ## Submitting an issue
 

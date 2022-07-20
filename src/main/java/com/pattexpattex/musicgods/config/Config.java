@@ -125,12 +125,12 @@ public class Config {
         String provider = config.getJSONObject("music").getString("lyrics");
 
         switch (provider) {
-            case "A-Z Lyrics", "MusixMatch", "Genius", "LyricsFreak":
+            case "MusixMatch", "Genius", "LyricsFreak":
                 return provider;
 
             default: {
                 brokenValue("music/lyrics");
-                return "A-Z Lyrics";
+                return "MusixMatch";
             }
         }
     }
