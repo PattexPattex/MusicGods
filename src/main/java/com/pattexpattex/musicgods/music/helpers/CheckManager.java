@@ -13,10 +13,7 @@ import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.requests.RestAction;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -146,7 +143,8 @@ public class CheckManager {
         if (isDj)
             deferAnEvent(event, deferEdit).queue(s -> action.run());
         else
-            event.reply("You have insufficient permissions.").queue();
+            event.reply(String.format("You do not have the %s role.", role.getAsMention()))
+                    .allowedMentions(Collections.emptyList()).queue();
     }
     
     /**
