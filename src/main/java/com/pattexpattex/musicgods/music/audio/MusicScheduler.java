@@ -316,7 +316,7 @@ public class MusicScheduler extends AudioEventAdapter {
         log.error("Something broke while playing a track", exception);
         
         if (queue.isEmpty()) {
-            messageDispatcher.sendMessage(String.format("Something broke while playing **%s**, stopping playback.", TrackMetadata.getBasicInfo(track)));
+            messageDispatcher.sendMessage(String.format("Something broke while playing %s, stopping playback.", TrackMetadata.getBasicInfo(track)));
             stop(false);
         }
     }
@@ -324,7 +324,7 @@ public class MusicScheduler extends AudioEventAdapter {
     @Override
     public void onTrackStuck(AudioPlayer player, AudioTrack track, long thresholdMs) {
         log.warn("Track {} got stuck for >{}ms", TrackMetadata.getUri(track), thresholdMs);
-        messageDispatcher.sendMessage(String.format("Track **%s** got stuck, skipping.", TrackMetadata.getBasicInfo(track)));
+        messageDispatcher.sendMessage(String.format("Track %s got stuck, skipping.", TrackMetadata.getBasicInfo(track)));
         startNext(false);
     }
 
