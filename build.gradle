@@ -30,18 +30,18 @@ dependencies {
     implementation 'org.json:json:20220320' //org.json for config
 
     //implementation 'com.sedmelluq:jda-nas:1.1.0' //JDA audio send subsystem
-    implementation 'com.github.walkyst:lavaplayer-fork:1.3.98.1' //Lavaplayer
+    implementation 'com.github.walkyst:lavaplayer-fork:1.3.98.4' //Lavaplayer
     implementation(files('lib/lavadsp-0.7.7.jar')) //Lavaplayer audio filters
     implementation(files('lib/native-loader-0.7.0.jar'))
-    implementation 'se.michaelthelin.spotify:spotify-web-api-java:7.1.0' //Spotify web API wrapper
+    implementation 'se.michaelthelin.spotify:spotify-web-api-java:7.2.0' //Spotify web API wrapper
     implementation 'com.jagrosh:JLyrics:0.6' //JLyrics
     implementation 'com.typesafe:config:1.4.2' //Typesafe (dependency of JLyrics)
-    implementation 'org.jsoup:jsoup:1.14.3'
+    implementation 'org.jsoup:jsoup:1.15.2'
     implementation 'com.sapher:youtubedl:1.1' //YoutubeDL wrapper
     implementation 'ch.obermuhlner:java-scriptengine:2.0.0' //Java script engine
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2' //Junit
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0' //Junit
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
 }
 
 jar {
