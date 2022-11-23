@@ -3,7 +3,8 @@
     "token": null,
     "owner": 0,
     "eval": false,
-    "update_alerts": true
+    "update_alerts": true,
+    "use_aliases": false
   },
 
   "presence": {

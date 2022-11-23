@@ -49,6 +49,10 @@ public class Config {
     public boolean getEval() {
         return config.getJSONObject("basic").getBoolean("eval");
     }
+    
+    public boolean getAliases() {
+        return config.getJSONObject("basic").getBoolean("use_aliases");
+    }
 
     public boolean getUpdateAlerts() {
         return config.getJSONObject("basic").getBoolean("update_alerts");
