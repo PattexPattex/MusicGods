@@ -8,7 +8,6 @@ import com.pattexpattex.musicgods.interfaces.slash.SlashInterfaceManager;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import net.dv8tion.jda.internal.interactions.CommandDataImpl;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
@@ -65,7 +64,6 @@ public class SlashCommand {
         return endpoint;
     }
 
-    @Contract(mutates = "this")
     public void addEndpoint(SlashEndpoint endpoint) {
         endpoints.put(endpoint.getPath().toString(), endpoint);
     }

@@ -5,15 +5,15 @@ import com.jagrosh.jlyrics.LyricsClient;
 import com.pattexpattex.musicgods.Bot;
 import com.pattexpattex.musicgods.music.audio.TrackMetadata;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.utils.SplitUtil;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Queue;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.*;
-
-import static net.dv8tion.jda.api.MessageBuilder.SplitPolicy.NEWLINE;
 
 public class LyricsManager {
     
@@ -51,27 +51,34 @@ public class LyricsManager {
         return client.getLyrics(identifier).orTimeout(TIMEOUT, TimeUnit.MILLISECONDS);
     }
 
-    public Queue<Message> buildLyricsMessage(Lyrics lyrics) {
-        MessageBuilder mb = new MessageBuilder();
+    public List<MessageEditData> buildLyricsMessage(Lyrics lyrics) {
+        MessageEditBuilder mb = new MessageEditBuilder();
 
-        if (lyrics == null)
-            return mb.append("No lyrics found.").buildAll(NEWLINE);
+        if (lyrics == null) {
+            return new ArrayList<>(List.of(new MessageEditBuilder()
+                    .setContent("No lyrics found.").build()));
+        }
 
         String content = lyrics.getContent().trim();
+        
+        if (content.length() > 15000) {
+            return new ArrayList<>(List.of(new MessageEditBuilder()
+                    .setContent(String.format("Lyrics found but likely not correct: <%s>", lyrics.getURL())).build()));
+        }
+    
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("**%s** by **%s** - <%s>\n\n", lyrics.getTitle(), lyrics.getAuthor(), lyrics.getURL()));
 
-        if (content.length() > 15000)
-            return mb.setContent(String.format("Lyrics found but likely not correct: <%s>", lyrics.getURL())).buildAll();
-
-        String[] split = content.split("\\n");
-
-        mb.appendFormat("**%s** by **%s** - <%s>\n\n", lyrics.getTitle(), lyrics.getAuthor(), lyrics.getURL());
-
-        for (String st : split)
-            mb.append("> ").append(st).append("\n");
-
-        mb.appendFormat("\n_Provided by %s._", provider);
-
-        return mb.buildAll(NEWLINE);
+        for (String st : content.split("\\n")) {
+            sb.append(">").append(st).append("\n");
+        }
+        
+        sb.append(String.format("\n_Provided by %s._", provider));
+        
+        return SplitUtil.split(sb.toString(), 2000, true, SplitUtil.Strategy.NEWLINE, SplitUtil.Strategy.WHITESPACE)
+                .stream()
+                .map(str -> new MessageEditBuilder().setContent(str).build())
+                .toList();
     }
 
     public String buildSearchQuery(AudioTrack track) {

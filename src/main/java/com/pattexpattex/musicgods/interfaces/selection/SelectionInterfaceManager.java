@@ -7,9 +7,9 @@ import com.pattexpattex.musicgods.interfaces.selection.objects.Selection;
 import com.pattexpattex.musicgods.interfaces.selection.objects.SelectionInterface;
 import com.pattexpattex.musicgods.interfaces.selection.objects.SelectionResponseHandler;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ public class SelectionInterfaceManager {
     }
 
     public void dispatch(Map<Class<? extends SelectionInterface>, SelectionInterface> controllers,
-                         SelectMenuInteractionEvent event, SelectionResponseHandler handler) {
+                         GenericSelectMenuInteractionEvent<?, ?> event, SelectionResponseHandler handler) {
         String identifier = event.getComponentId();
         Selection selection = selections.get(identifier);
 
@@ -64,7 +64,7 @@ public class SelectionInterfaceManager {
         args[0] = event;
 
         if (args.length == 2)
-            args[1] = event.getSelectedOptions();
+            args[1] = event.getValues();
 
         try {
             selection.getMethod().invoke(controllers.get(selection.getController()), args);
@@ -81,7 +81,7 @@ public class SelectionInterfaceManager {
                                SelectionHandle handle, Permissions permissions) {
         Parameter[] parameters = method.getParameters();
 
-        if (parameters.length == 0 || !parameters[0].getType().isAssignableFrom(SelectMenuInteractionEvent.class)) {
+        if (parameters.length == 0 || !parameters[0].getType().isAssignableFrom(GenericSelectMenuInteractionEvent.class)) {
             log.warn("Method ({}) does not have a SelectMenuInteractionEvent as the 1st parameter", method);
             return;
         }
@@ -97,13 +97,10 @@ public class SelectionInterfaceManager {
     }
 
     public SelectMenu buildSelection(String identifier, boolean disabled) {
-        if (!disabled)
-            return selections.get(identifier).build();
-        else
-            return selections.get(identifier).build().asDisabled();
+        return selections.get(identifier).getMenu().setDisabled(disabled).build();
     }
 
-    private boolean checkPermissions(SelectMenuInteractionEvent event,
+    private boolean checkPermissions(GenericSelectMenuInteractionEvent<?, ?> event,
                                      Selection selection,
                                      SelectionResponseHandler handler) {
         Selection.Permissions permissions = selection.getPermissions();

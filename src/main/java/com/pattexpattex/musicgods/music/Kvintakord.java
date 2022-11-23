@@ -40,9 +40,13 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.TrackMarker;
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.GuildVoiceState;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceGuildDeafenEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -50,10 +54,12 @@ import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.managers.AudioManager;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -289,12 +295,12 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
     public void retrieveLyrics(InteractionHook hook, String query) {
         lyricsHelper.getLyricsAsync(query)
                 .thenAccept(lyrics -> {
-                    Queue<Message> messages = lyricsHelper.buildLyricsMessage(lyrics);
+                    List<MessageEditData> messages = lyricsHelper.buildLyricsMessage(lyrics);
     
-                    hook.editOriginal(messages.remove()).queue(message -> {
-                        for (Message msg : messages)
-                            message.getChannel().sendMessage(msg).queue();
-                    });
+                    hook.editOriginal(messages.remove(0)).queue(message -> messages.stream()
+                                .map(MessageCreateData::fromEditData)
+                                .forEach(msg -> message.getChannel().sendMessage(msg).queue())
+                    );
                 })
                 .exceptionally(th -> {
                     if (th instanceof TimeoutException te)
@@ -414,7 +420,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
         
         TrackMetadata.buildMetadata(track);
         
-        callback.getHook().editOriginal(new MessageBuilder(trackLoadMessage(track)).build()).queue();
+        callback.getHook().editOriginal(new MessageEditBuilder().setContent(trackLoadMessage(track)).build()).queue();
         connectToVoiceChannel(channel);
         
         if (first)
@@ -486,7 +492,7 @@ public class Kvintakord implements ButtonInterface, SlashInterface {
         }
         
         @Override
-        public void sendMessage(Message message, Consumer<Message> success, Consumer<Throwable> failure) {
+        public void sendMessage(MessageCreateData message, Consumer<Message> success, Consumer<Throwable> failure) {
             MessageChannel channel = outputChannel.get();
             
             if (channel == null) return;

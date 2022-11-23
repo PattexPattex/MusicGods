@@ -4,7 +4,6 @@ import com.pattexpattex.musicgods.music.spotify.SpotifyAudioTrack;
 import com.pattexpattex.musicgods.util.FormatUtils;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import se.michaelthelin.spotify.model_objects.specification.Album;
@@ -67,7 +66,6 @@ public class TrackMetadata {
         this.isSpotify = false;
     }
 
-    @Contract(mutates = "param1")
     public static void buildMetadata(AudioTrack track) {
         if (track instanceof SpotifyAudioTrack) return;
         if (track.getUserData(KLASS) != null) return;
@@ -75,12 +73,10 @@ public class TrackMetadata {
         track.setUserData(new TrackMetadata(track));
     }
 
-    @Contract(mutates = "param1")
     public static void buildMetadata(@NotNull SpotifyAudioTrack track, Track backingTrack) {
         track.setUserData(new TrackMetadata(backingTrack));
     }
 
-    @Contract(mutates = "param1")
     public static void buildMetadata(SpotifyAudioTrack track, TrackSimplified backingTrack, Album backingAlbum) {
         track.setUserData(new TrackMetadata(backingTrack, backingAlbum));
     }

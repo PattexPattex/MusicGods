@@ -2,17 +2,17 @@ package com.pattexpattex.musicgods.util.dispatchers.impl;
 
 import com.pattexpattex.musicgods.util.BotEmoji;
 import com.pattexpattex.musicgods.util.dispatchers.InteractionMessageDispatcher;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 import java.util.function.Consumer;
 
 public class SelectionMessageDispatcherImpl implements InteractionMessageDispatcher {
 
-    private final SelectMenuInteractionEvent event;
+    private final GenericSelectMenuInteractionEvent<?, ?> event;
 
-    public SelectionMessageDispatcherImpl(SelectMenuInteractionEvent event) {
+    public SelectionMessageDispatcherImpl(GenericSelectMenuInteractionEvent<?, ?> event) {
         this.event = event;
     }
 
@@ -27,7 +27,7 @@ public class SelectionMessageDispatcherImpl implements InteractionMessageDispatc
     }
 
     @Override
-    public void sendMessage(Message message, Consumer<InteractionHook> success, Consumer<Throwable> failure) {
+    public void sendMessage(MessageCreateData message, Consumer<InteractionHook> success, Consumer<Throwable> failure) {
         event.reply(message).queue(success, failure);
     }
 

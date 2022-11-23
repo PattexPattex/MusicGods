@@ -16,13 +16,13 @@ import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterfaceFactory
 import com.pattexpattex.musicgods.util.FormatUtils;
 import com.pattexpattex.musicgods.util.OtherUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 
 import java.util.List;
 
@@ -35,11 +35,11 @@ public class HelpCommand implements SlashInterface, ButtonInterface, SelectionIn
     }
 
     @SelectionHandle("help:help")
-    public void helpSelection(SelectMenuInteractionEvent event, List<SelectOption> selected) {
+    public void helpSelection(GenericSelectMenuInteractionEvent<?, ?> event, List<String> selected) {
         SlashGroup group = manager.getInterfaceManager()
                 .getSlashManager()
                 .getGroupManager()
-                .getGroup(selected.get(0).getValue());
+                .getGroup(selected.get(0));
 
         Emoji emoji = group.getEmoji();
 
@@ -62,7 +62,7 @@ public class HelpCommand implements SlashInterface, ButtonInterface, SelectionIn
     @SlashHandle(path = "help", description = "Help & info about this bot.")
     public void help(SlashCommandInteractionEvent event) {
         EmbedBuilder eb = FormatUtils.embed().setTitle("Help");
-        MessageBuilder mb = new MessageBuilder().setActionRows(ActionRow.of(
+        MessageCreateBuilder mb = new MessageCreateBuilder().setComponents(ActionRow.of(
                 manager.getInterfaceManager().getSelectionManager().buildSelection("help:help", false)));
 
         eb.appendDescription(helpBottomLine());

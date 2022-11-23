@@ -4,8 +4,6 @@ import com.pattexpattex.musicgods.Bot;
 import com.pattexpattex.musicgods.interfaces.button.objects.Button;
 import com.pattexpattex.musicgods.util.OtherUtils;
 import com.pattexpattex.musicgods.wait.Waiter;
-import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
@@ -13,6 +11,10 @@ import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.dv8tion.jda.internal.utils.Checks;
 
 import java.util.*;
@@ -65,7 +67,7 @@ public class ChoiceConfirmation {
                 && ev.getComponentId().contains(String.valueOf(id))
                 && ev.getUser().getIdLong() == requester.getIdLong();
         
-        event.reply(buildMessage()).queue(null, f -> event.getHook().editOriginal(buildMessage()).queue());
+        event.reply(buildMessage()).queue(null, f -> event.getHook().editOriginal(MessageEditData.fromCreateData(buildMessage())).queue());
         this.hook = event.getHook();
         this.submittedAt = OtherUtils.epoch();
     }
@@ -86,7 +88,7 @@ public class ChoiceConfirmation {
                 })
                 .exceptionally(throwable -> {
                     if (throwable.getCause() instanceof TimeoutException)
-                        hook.editOriginal(new MessageBuilder("Timed out. **|** " + prompt).build()).queue(s -> {
+                        hook.editOriginal(new MessageEditBuilder().setContent("Timed out. **|** " + prompt).build()).queue(s -> {
                             if (onTimeout != null)
                                 onTimeout.accept(hook);
                         });
@@ -103,34 +105,35 @@ public class ChoiceConfirmation {
         return (time < 0 ? -1 : time);
     }
     
-    private Message buildMessage() {
-        MessageBuilder builder = new MessageBuilder();
+    private MessageCreateData buildMessage() {
         
-        builder.append(prompt);
+        StringBuilder sb = new StringBuilder();
         
-        for (int i = 0; i < choices.length; i++)
-            builder.append("\n> ").append(getEmojiFromInt(i)).append(" ").append(choices[i]);
+        sb.append(prompt);
         
-        builder.setActionRows(buildRow());
+        for (int i = 0; i < choices.length; i++) {
+            sb.append("\n> ").append(getEmojiFromInt(i)).append(" ").append(choices[i]);
+        }
         
-        return builder.build();
+        return new MessageCreateBuilder().addComponents(buildRow()).setContent(sb.toString()).build();
     }
     
-    private Message buildFinishedMessage(ChoiceConfirmationStatus status) {
-        MessageBuilder builder = new MessageBuilder();
+    private MessageEditData buildFinishedMessage(ChoiceConfirmationStatus status) {
+        StringBuilder builder = new StringBuilder();
         
-        if (status == ChoiceConfirmationStatus.CANCELLED)
-            return builder.append("Cancelled")
+        if (status == ChoiceConfirmationStatus.CANCELLED) {
+            builder.append("Cancelled")
                     .append(" **|** ")
-                    .append(prompt)
-                    .build();
-        else
-            return builder.append(getEmojiFromInt(status.getId()))
+                    .append(prompt);
+        } else {
+            builder.append(getEmojiFromInt(status.getId()))
                     .append(" ")
                     .append(choices[status.getId()])
                     .append(" **|** ")
-                    .append(prompt)
-                    .build();
+                    .append(prompt);
+        }
+        
+        return new MessageEditBuilder().setContent(builder.toString()).setComponents().build();
     }
     
     private ActionRow buildRow() {

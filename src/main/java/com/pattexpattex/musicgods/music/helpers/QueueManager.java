@@ -14,12 +14,12 @@ import com.pattexpattex.musicgods.util.TimeoutTimer;
 import com.pattexpattex.musicgods.util.builders.QueueBoxBuilder;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -120,10 +120,7 @@ public class QueueManager implements ButtonInterface, Runnable {
 
     @ButtonHandle(identifier = "kv:lyrics", emoji = BotEmoji.SCROLL)
     public void lyricsButton(ButtonInteractionEvent event) {
-        checkManager.deferredCheck(() -> {
-            setMessage(event.getHook());
-            kvintakord.getScheduler().forCurrentTrack(track -> kvintakord.retrieveLyrics(event.getHook(), kvintakord.getLyricsHelper().buildSearchQuery(track)));
-        }, event, false);
+        checkManager.deferredCheck(() -> kvintakord.getScheduler().forCurrentTrack(track -> kvintakord.retrieveLyrics(event.getHook(), kvintakord.getLyricsHelper().buildSearchQuery(track))), event, false);
     }
 
     @ButtonHandle(identifier = "kv:page.prev", label = "Previous page",
@@ -194,7 +191,7 @@ public class QueueManager implements ButtonInterface, Runnable {
         else {
             MusicScheduler scheduler = kvintakord.getScheduler();
             InteractionHook old = message.get();
-            Message box = QueueBoxBuilder.build(track, scheduler.getQueue(), scheduler.getLoop(),
+            MessageEditData box = QueueBoxBuilder.build(track, scheduler.getQueue(), scheduler.getLoop(),
                     scheduler.getShuffle(), scheduler.isPaused(), scheduler.getVolume(), messagePage.get(), manager);
 
             if (hook != null) {

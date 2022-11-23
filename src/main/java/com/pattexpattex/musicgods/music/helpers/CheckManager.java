@@ -3,10 +3,10 @@ package com.pattexpattex.musicgods.music.helpers;
 import com.pattexpattex.musicgods.config.storage.GuildConfig;
 import com.pattexpattex.musicgods.music.Kvintakord;
 import com.pattexpattex.musicgods.wait.prompt.Prompt;
-import net.dv8tion.jda.api.entities.AudioChannel;
 import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
@@ -144,7 +144,7 @@ public class CheckManager {
             deferAnEvent(event, deferEdit).queue(s -> action.run());
         else
             event.reply(String.format("You do not have the %s role.", role.getAsMention()))
-                    .allowedMentions(Collections.emptyList()).queue();
+                    .setAllowedMentions(Collections.emptyList()).queue();
     }
     
     /**

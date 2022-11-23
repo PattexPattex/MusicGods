@@ -4,6 +4,7 @@ import com.pattexpattex.musicgods.config.Config;
 import com.pattexpattex.musicgods.config.storage.GuildConfigManager;
 import com.pattexpattex.musicgods.util.BundledLibs;
 import com.pattexpattex.musicgods.util.OtherUtils;
+import com.sedmelluq.discord.lavaplayer.jdaudp.NativeAudioSendFactory;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -14,7 +15,6 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -110,13 +110,9 @@ public class Bot {
                     .setActivity(Activity.watching("me load"))
                     .setStatus((config.getStatus() == OnlineStatus.INVISIBLE || config.getStatus() == OnlineStatus.OFFLINE ? OnlineStatus.INVISIBLE : OnlineStatus.DO_NOT_DISTURB))
                     .addEventListeners(applicationManager)
-                    //.setAudioSendFactory(new NativeAudioSendFactory())
+                    .setAudioSendFactory(new NativeAudioSendFactory())
                     .build()
                     .awaitReady();
-        }
-        catch (LoginException e) {
-            log.error("Failed logging in! Are you sure you entered the right token?", e);
-            System.exit(3);
         }
         catch (IllegalArgumentException e) {
             log.error("Invalid JDA configuration", e);

@@ -3,8 +3,8 @@ package com.pattexpattex.musicgods.interfaces.slash.objects;
 import com.pattexpattex.musicgods.annotations.slash.Grouped;
 import com.pattexpattex.musicgods.util.BotEmoji;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 public class SlashGroup {
@@ -18,7 +18,8 @@ public class SlashGroup {
 
     private String name;
     private final String identifier;
-    @Nullable private String description;
+    @Nullable
+    private String description;
     @Nullable private Emoji emoji;
     private final boolean hidden;
     private final List<SlashCommand> commands;

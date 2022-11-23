@@ -79,7 +79,7 @@ public class EvalCommand implements SlashInterface {
                                 ev.getComponentId().equals(Button.DUMMY_PREFIX + "eval:no." + id),
                         1, TimeUnit.MINUTES)
                 .thenAccept(ev ->
-                        ev.editMessage("Okay then.").setActionRows().queue());
+                        ev.editMessage("Okay then.").setComponents().queue());
     }
 
     private void eval(SlashCommandInteractionEvent event, String script) {
@@ -102,21 +102,21 @@ public class EvalCommand implements SlashInterface {
 
     private void parseEvalResponse(SlashCommandInteractionEvent event, Object response, long elapsed) {
         if (response == null) {
-            event.getHook().editOriginal(String.format("Eval success! **|** Took %sms", elapsed)).setActionRows().queue();
+            event.getHook().editOriginal(String.format("Eval success! **|** Took %sms", elapsed)).setComponents().queue();
         }
         else if (response instanceof Throwable thr) {
             event.getHook().editOriginal(String.format("Eval failed. **|** Took %sms **|** What went wrong: `%s`",
-                    elapsed, thr)).setActionRows().queue();
+                    elapsed, thr)).setComponents().queue();
 
             OtherUtils.getLog().warn("Eval failed", thr);
         }
         else if (response instanceof RestAction<?> action) {
             action.queue(s -> event.getHook().editOriginal(
                     String.format("Eval success! **|** Took %sms **|** Rest action returned `%s`",
-                            elapsed, s)).setActionRows().queue(),
+                            elapsed, s)).setComponents().queue(),
                     thr -> {
                         event.getHook().editOriginal(String.format("Eval failed. **|** Took %sms **|** What went wrong: `%s`",
-                                elapsed, thr)).setActionRows().queue();
+                                elapsed, thr)).setComponents().queue();
 
                         OtherUtils.getLog().warn("Eval failed", thr);
                     });

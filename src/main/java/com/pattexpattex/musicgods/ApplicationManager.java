@@ -1,5 +1,6 @@
 package com.pattexpattex.musicgods;
 
+import com.pattexpattex.musicgods.commands.Aliases;
 import com.pattexpattex.musicgods.commands.EvalCommand;
 import com.pattexpattex.musicgods.commands.HelpCommand;
 import com.pattexpattex.musicgods.commands.SystemCommands;
@@ -30,16 +31,16 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInteractionEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -76,6 +77,10 @@ public class ApplicationManager extends ListenerAdapter {
 
         if (bot.getConfig().getEval()) {
             interfaceManager.registerControllers(new EvalCommand.Factory());
+        }
+        
+        if (bot.getConfig().getAliases()) {
+            interfaceManager.registerControllers(new Aliases.Factory());
         }
 
         interfaceManager.finishSetup();
@@ -223,44 +228,44 @@ public class ApplicationManager extends ListenerAdapter {
             }
         });
     }
-
+    
     @Override
-    public void onSelectMenuInteraction(@NotNull SelectMenuInteractionEvent event) {
+    public void onGenericSelectMenuInteraction(@NotNull GenericSelectMenuInteractionEvent event) {
         InteractionMessageDispatcher messageDispatcher = new SelectionMessageDispatcherImpl(event);
         Member member = event.getMember();
-
+    
         if (event.getGuild() == null || member == null || member.getUser().isBot()) return;
-
+    
         GuildContext context = getGuildContext(event.getGuild());
-
+    
         interfaceManager.getSelectionManager().dispatch(context.filter(SelectionInterface.class),
                 event, new SelectionResponseHandler() {
-
-            @Override
-            public void notFound(SelectMenuInteractionEvent event, String identifier) {
-                messageDispatcher.sendMessage("This is an unknown / unregistered selection menu.");
-            }
-
-            @Override
-            public void restricted(SelectMenuInteractionEvent event, String identifier,
-                                   Permission[] required, Permission[] found) {
-                messageDispatcher.sendMessage(String.format("You have insufficient permissions - Missing: %s",
-                        FormatUtils.permissionsToString(OtherUtils.differenceInArray(required, found))));
-            }
-
-            @Override
-            public void selfRestricted(SelectMenuInteractionEvent event, String identifier,
-                                       Permission[] required, Permission[] found) {
-                messageDispatcher.sendMessage(String.format("I have insufficient permissions - Missing: %s",
-                        FormatUtils.permissionsToString(OtherUtils.differenceInArray(required, found))));
-            }
-
-            @Override
-            public void exception(SelectMenuInteractionEvent event, String identifier, Throwable throwable) {
-                messageDispatcher.sendMessage(String.format("Selection menu threw an exception: %s", throwable));
-                log.error("Selection menu ({}) threw an exception", identifier, throwable);
-            }
-        });
+                
+                    @Override
+                    public void notFound(GenericSelectMenuInteractionEvent<?, ?> event, String identifier) {
+                        messageDispatcher.sendMessage("This is an unknown / unregistered selection menu.");
+                    }
+                
+                    @Override
+                    public void restricted(GenericSelectMenuInteractionEvent<?, ?> event, String identifier,
+                                           Permission[] required, Permission[] found) {
+                        messageDispatcher.sendMessage(String.format("You have insufficient permissions - Missing: %s",
+                                FormatUtils.permissionsToString(OtherUtils.differenceInArray(required, found))));
+                    }
+                
+                    @Override
+                    public void selfRestricted(GenericSelectMenuInteractionEvent<?, ?> event, String identifier,
+                                               Permission[] required, Permission[] found) {
+                        messageDispatcher.sendMessage(String.format("I have insufficient permissions - Missing: %s",
+                                FormatUtils.permissionsToString(OtherUtils.differenceInArray(required, found))));
+                    }
+                
+                    @Override
+                    public void exception(GenericSelectMenuInteractionEvent<?, ?> event, String identifier, Throwable throwable) {
+                        messageDispatcher.sendMessage(String.format("Selection menu threw an exception: %s", throwable));
+                        log.error("Selection menu ({}) threw an exception", identifier, throwable);
+                    }
+                });
     }
     
     @Override
@@ -320,14 +325,18 @@ public class ApplicationManager extends ListenerAdapter {
         if (context != null)
             context.destroy();
     }
-
+    
     @Override
-    public void onGuildVoiceLeave(@NotNull GuildVoiceLeaveEvent event) {
+    public void onGuildVoiceUpdate(GuildVoiceUpdateEvent event) {
+        if (event.getChannelLeft() == null) {
+            return;
+        }
+        
         Member member = event.getMember();
-
+    
         if (member.getIdLong() == event.getGuild().getSelfMember().getIdLong()) {
             GuildContext context = getGuildContext(event.getGuild());
-
+        
             context.getController(Kvintakord.class).stop(false);
         }
     }

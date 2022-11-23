@@ -1,11 +1,11 @@
 package com.pattexpattex.musicgods.util;
 
 import com.pattexpattex.musicgods.Bot;
+import com.pattexpattex.musicgods.annotations.slash.parameter.Range;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import org.apache.http.client.utils.DateUtils;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.Range;
 
 import java.awt.*;
 import java.time.Instant;
@@ -70,7 +70,7 @@ public class FormatUtils {
                 (seconds < 10 ? "0" + seconds : seconds);
     }
 
-    public static String buildLine(@Range(from = 0, to = 1) double percent, int size) {
+    public static String buildLine(@Range(min = 0, max = 1) double percent, int size) {
         StringBuilder builder = new StringBuilder();
 
         for (int i = 0; i < size; i++) {
@@ -83,7 +83,7 @@ public class FormatUtils {
         return builder.toString();
     }
 
-    public static String buildFullLine(@Range(from = 0, to = 1) double percent, int size) {
+    public static String buildFullLine(@Range(min = 0, max = 1) double percent, int size) {
         StringBuilder builder = new StringBuilder();
 
         for (int i = 0; i < size; i++) {

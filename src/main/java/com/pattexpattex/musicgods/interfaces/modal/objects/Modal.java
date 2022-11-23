@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
-import net.dv8tion.jda.internal.interactions.component.ModalImpl;
+import net.dv8tion.jda.internal.interactions.modal.ModalImpl;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -43,7 +43,7 @@ public class Modal {
         return method;
     }
     
-    public net.dv8tion.jda.api.interactions.components.Modal build() {
+    public net.dv8tion.jda.api.interactions.modals.Modal build() {
         return new ModalImpl(metadata.id, metadata.title, metadata.actionRows);
     }
     

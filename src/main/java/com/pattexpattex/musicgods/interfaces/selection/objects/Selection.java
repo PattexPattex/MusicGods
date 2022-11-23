@@ -4,7 +4,8 @@ import com.pattexpattex.musicgods.annotations.selection.SelectionHandle;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
-import net.dv8tion.jda.internal.interactions.component.SelectMenuImpl;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
+import net.dv8tion.jda.internal.interactions.component.StringSelectMenuImpl;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -16,14 +17,14 @@ public class Selection {
     private final String identifier;
     private final Class<? extends SelectionInterface> controller;
     private final Method method;
-    private final SelectMenu.Builder menu;
+    private final StringSelectMenu.Builder menu;
     private final Permissions permissions;
 
     private Selection(String identifier, Class<? extends SelectionInterface> controller, Method method, Permissions permissions) {
         this.identifier = identifier;
         this.controller = controller;
         this.method = method;
-        this.menu = SelectMenu.create(identifier);
+        this.menu = StringSelectMenu.create(identifier);
         this.permissions = permissions;
     }
 
@@ -39,7 +40,7 @@ public class Selection {
         return method;
     }
 
-    public SelectMenu.Builder getMenu() {
+    public StringSelectMenu.Builder getMenu() {
         return menu;
     }
 
@@ -92,7 +93,7 @@ public class Selection {
 
     public static SelectMenu dummy(String identifier, String placeholder, int min,
                                    int max, boolean disabled, List<SelectOption> options) {
-        return new SelectMenuImpl(DUMMY_PREFIX + identifier, placeholder, min, max, disabled, options);
+        return new StringSelectMenuImpl(DUMMY_PREFIX + identifier, placeholder, min, max, disabled, options);
     }
 
     public static class Permissions {

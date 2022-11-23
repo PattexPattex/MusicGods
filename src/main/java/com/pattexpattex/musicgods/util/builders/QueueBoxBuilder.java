@@ -10,10 +10,10 @@ import com.pattexpattex.musicgods.util.BotEmoji;
 import com.pattexpattex.musicgods.util.FormatUtils;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 import java.util.List;
 
@@ -23,10 +23,10 @@ public class QueueBoxBuilder {
 
     private QueueBoxBuilder() {}
 
-    public static Message build(AudioTrack track, List<AudioTrack> queue,
-                                LoopMode loopMode, ShuffleMode shuffleMode, boolean isPaused,
-                                int volume, int page, ApplicationManager manager) {
-        MessageBuilder messageBuilder = new MessageBuilder();
+    public static MessageEditData build(AudioTrack track, List<AudioTrack> queue,
+                                        LoopMode loopMode, ShuffleMode shuffleMode, boolean isPaused,
+                                        int volume, int page, ApplicationManager manager) {
+        MessageEditBuilder messageBuilder = new MessageEditBuilder();
         StringBuilder stringBuilder = new StringBuilder();
         EmbedBuilder embedBuilder = embed(track);
 
@@ -43,12 +43,14 @@ public class QueueBoxBuilder {
 
             stringBuilder.append(String.format("**%d.** %s\n", i + 1, TrackMetadata.getBasicInfoWithUrls(queue.get(i))));
         }
-
-        return messageBuilder.setActionRows(buildActionRows(track, queue, page, manager))
-                .setEmbeds(embedBuilder.setDescription(stringBuilder).build()).build();
+    
+        return messageBuilder
+                .setComponents(buildActionRows(track, queue, page, manager))
+                .setEmbeds(embedBuilder.setDescription(stringBuilder).build())
+                .build();
     }
 
-    private static ActionRow[] buildActionRows(AudioTrack track, List<AudioTrack> queue, int page,
+    private static List<ActionRow> buildActionRows(AudioTrack track, List<AudioTrack> queue, int page,
                                                ApplicationManager applicationManager) {
         ButtonInterfaceManager manager = applicationManager.getInterfaceManager().getButtonManager();
 
@@ -72,7 +74,7 @@ public class QueueBoxBuilder {
                         manager.buildButton("kv:destroy", false)) :
                 List.of(manager.buildButton("kv:destroy", false)));
 
-        return new ActionRow[]{ ActionRow.of(firstRow), ActionRow.of(secondRow), ActionRow.of(thirdRow) };
+        return List.of(ActionRow.of(firstRow), ActionRow.of(secondRow), ActionRow.of(thirdRow));
     }
 
     private static String buildFirstLine(AudioTrack track) {

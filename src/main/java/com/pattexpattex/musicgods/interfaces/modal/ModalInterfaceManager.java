@@ -89,7 +89,7 @@ public class ModalInterfaceManager {
             args[i + 1] = mappings.get(i).getAsString();
     }
     
-    public net.dv8tion.jda.api.interactions.components.Modal buildModal(String id) {
+    public net.dv8tion.jda.api.interactions.modals.Modal buildModal(String id) {
         Modal modal = modals.get(id);
         
         if (modal == null)

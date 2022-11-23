@@ -15,10 +15,10 @@ import com.pattexpattex.musicgods.util.TimeoutTimer;
 import com.pattexpattex.musicgods.util.builders.EqualizerGuiBuilder;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -175,7 +175,7 @@ public class EqualizerManager implements ButtonInterface {
         }
         else {
             InteractionHook old = message.get();
-            Message box = EqualizerGuiBuilder.build(equalizer, manager.getManager());
+            MessageEditData box = EqualizerGuiBuilder.build(equalizer, manager.getManager());
             
             if (hook != null) {
                 if (creatingMessage.compareAndSet(false, true)) {

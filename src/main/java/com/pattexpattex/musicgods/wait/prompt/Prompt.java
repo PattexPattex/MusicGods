@@ -5,15 +5,15 @@ import com.pattexpattex.musicgods.interfaces.button.objects.Button;
 import com.pattexpattex.musicgods.util.BotEmoji;
 import com.pattexpattex.musicgods.util.OtherUtils;
 import com.pattexpattex.musicgods.wait.Waiter;
-import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.dv8tion.jda.internal.utils.Checks;
 
 import java.util.*;
@@ -75,7 +75,7 @@ public class Prompt {
                 && !accepts.contains(ev.getUser())
                 && !rejects.contains(ev.getUser());
         
-        event.reply(buildMessage()).queue(null, f -> event.getHook().editOriginal(buildMessage()).queue());
+        event.reply(MessageCreateData.fromEditData(buildMessage())).queue(null, f -> event.getHook().editOriginal(buildMessage()).queue());
         this.hook = event.getHook();
         
         this.submittedAt = OtherUtils.epoch();
@@ -135,7 +135,7 @@ public class Prompt {
                 })
                 .exceptionally(throwable -> {
                     if (throwable.getCause() instanceof TimeoutException)
-                        hook.editOriginal(new MessageBuilder("Timed out. **|** " + prompt).build()).queue(s -> {
+                        hook.editOriginal(new MessageEditBuilder().setContent("Timed out. **|** " + prompt).build()).queue(s -> {
                             if (onTimeout != null)
                                 onTimeout.accept(hook);
                         });
@@ -152,28 +152,24 @@ public class Prompt {
         return (time < 0 ? -1 : time);
     }
     
-    private Message buildMessage() {
-        MessageBuilder builder = new MessageBuilder();
-        
-        builder.append(prompt).append(" ").append(buildMessageSuffix());
-        
-        List<ItemComponent> list = new LinkedList<>();
+    private MessageEditData buildMessage() {
+        List<ItemComponent> list = new ArrayList<>();
         
         list.add(Button.dummy("prompt:yes." + id, null, BotEmoji.YES, ButtonStyle.SUCCESS, false));
         
-        if (onReject != null)
+        if (onReject != null) {
             list.add(Button.dummy("prompt:no." + id, null, BotEmoji.NO, ButtonStyle.SECONDARY, false));
+        }
         
-        if (onCancel != null)
+        if (onCancel != null) {
             list.add(Button.dummy("prompt:cancel." + id, "Cancel", null, ButtonStyle.DANGER, false));
+        }
         
-        builder.setActionRows(ActionRow.of(list));
-        
-        return builder.build();
+        return new MessageEditBuilder().setContent(prompt + " " + buildMessageSuffix()).setActionRow(list).build();
     }
     
-    private Message buildFinishedMessage(PromptStatus status) {
-        MessageBuilder builder = new MessageBuilder();
+    private MessageEditData buildFinishedMessage(PromptStatus status) {
+        StringBuilder builder = new StringBuilder();
         
         switch (status) {
             case ACCEPT -> builder.append(BotEmoji.YES);
@@ -184,7 +180,7 @@ public class Prompt {
         
         builder.append(" **|** ").append(prompt);
         
-        return builder.build();
+        return MessageEditData.fromContent(builder.toString());
     }
     
     private String buildMessageSuffix() {

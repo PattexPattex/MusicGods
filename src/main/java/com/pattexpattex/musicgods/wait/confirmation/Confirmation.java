@@ -5,15 +5,16 @@ import com.pattexpattex.musicgods.interfaces.button.objects.Button;
 import com.pattexpattex.musicgods.util.BotEmoji;
 import com.pattexpattex.musicgods.util.OtherUtils;
 import com.pattexpattex.musicgods.wait.Waiter;
-import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.dv8tion.jda.internal.utils.Checks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,7 +64,7 @@ public class Confirmation {
                 && ev.getComponentId().contains(String.valueOf(id))
                 && ev.getUser().getIdLong() == requester.getIdLong();
     
-        event.reply(buildMessage()).queue(null, f -> event.getHook().editOriginal(buildMessage()).queue());
+        event.reply(buildMessage()).queue(null, f -> event.getHook().editOriginal(MessageEditData.fromCreateData(buildMessage())).queue());
         this.hook = event.getHook();
         
         this.submittedAt = OtherUtils.epoch();
@@ -90,7 +91,7 @@ public class Confirmation {
                 })
                 .exceptionally(throwable -> {
                     if (throwable.getCause() instanceof TimeoutException)
-                        hook.editOriginal(new MessageBuilder("Timed out. **|** " + prompt).build()).queue(s -> {
+                        hook.editOriginal(new MessageEditBuilder().setContent("Timed out. **|** " + prompt).build()).queue(s -> {
                             if (onTimeout != null)
                                 onTimeout.accept(hook);
                         });
@@ -101,27 +102,24 @@ public class Confirmation {
                 });
     }
     
-    private Message buildMessage() {
-        MessageBuilder builder = new MessageBuilder();
-        
-        builder.append(prompt);
-        List<ItemComponent> list = new LinkedList<>();
+    private MessageCreateData buildMessage() {
+        List<ItemComponent> list = new ArrayList<>();
         
         list.add(Button.dummy("confirmation:yes." + id, null, BotEmoji.YES, ButtonStyle.SUCCESS, false));
         
-        if (onDeny != null)
+        if (onDeny != null) {
             list.add(Button.dummy("confirmation:no." + id, null, BotEmoji.NO, ButtonStyle.SECONDARY, false));
+        }
         
-        if (onCancel != null)
+        if (onCancel != null) {
             list.add(Button.dummy("confirmation:cancel." + id, "Cancel", null, ButtonStyle.DANGER, false));
+        }
         
-        builder.setActionRows(ActionRow.of(list));
-        
-        return builder.build();
+        return new MessageCreateBuilder().setContent(prompt).addActionRow(list).build();
     }
     
-    private Message buildFinishedMessage(ConfirmationStatus status) {
-        MessageBuilder builder = new MessageBuilder();
+    private MessageEditData buildFinishedMessage(ConfirmationStatus status) {
+        StringBuilder builder = new StringBuilder();
         
         switch (status) {
             case CONFIRMED -> builder.append(BotEmoji.YES);
@@ -132,7 +130,7 @@ public class Confirmation {
         
         builder.append(" **|** ").append(prompt);
         
-        return builder.build();
+        return new MessageEditBuilder().setContent(builder.toString()).setComponents().build();
     }
     
     private long calculateTimeout() {

@@ -4,11 +4,11 @@ import com.pattexpattex.musicgods.ApplicationManager;
 import com.pattexpattex.musicgods.interfaces.InterfaceManagerConnector;
 import com.pattexpattex.musicgods.music.audio.filter.equalizer.EqualizerConfig;
 import com.pattexpattex.musicgods.util.FormatUtils;
-import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,8 +26,7 @@ public class EqualizerGuiBuilder {
 
     private static final String EQ_BUTTON_ID = "kv:filters.equalizer:%s.%d"; // %s = up / down | %d = 0 - 4
 
-    public static Message build(EqualizerConfig equalizer, ApplicationManager applicationManager) {
-        MessageBuilder messageBuilder = new MessageBuilder();
+    public static MessageEditData build(EqualizerConfig equalizer, ApplicationManager applicationManager) {
         StringBuilder stringBuilder = new StringBuilder(MSG_CODEBLOCK);
 
         stringBuilder.append(buildFirstLine()).append("\n");
@@ -36,8 +35,8 @@ public class EqualizerGuiBuilder {
             stringBuilder.append(buildLine(equalizer, i));
 
         stringBuilder.append(MSG_CODEBLOCK);
-        return messageBuilder.setEmbeds(FormatUtils.kvintakordEmbed().setDescription(stringBuilder).build())
-                .setActionRows(buildActionRows(equalizer, applicationManager.getInterfaceManager())).build();
+        return new MessageEditBuilder().setEmbeds(FormatUtils.kvintakordEmbed().setDescription(stringBuilder).build())
+                .setComponents(buildActionRows(equalizer, applicationManager.getInterfaceManager())).build();
     }
 
     private static String buildFirstLine() {
