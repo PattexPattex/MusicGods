@@ -3,6 +3,7 @@ package com.pattexpattex.musicgods.commands;
 import com.pattexpattex.musicgods.ApplicationManager;
 import com.pattexpattex.musicgods.GuildContext;
 import com.pattexpattex.musicgods.annotations.Permissions;
+import com.pattexpattex.musicgods.annotations.slash.Grouped;
 import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Choice;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Parameter;
@@ -16,16 +17,15 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+@Grouped(value = "alias", name = "Command Aliases", description = "Aliases for frequently used commands", emoji = "\uD83D\uDCCB")
 public class Aliases implements SlashInterface {
     
     private final ApplicationManager manager;
     private final GuildContext context;
-    private final Guild guild;
     
-    public Aliases(ApplicationManager manager, GuildContext context, Guild guild) {
+    public Aliases(ApplicationManager manager, GuildContext context) {
         this.manager = manager;
         this.context = context;
-        this.guild = guild;
     }
     
     @SlashHandle(path = "p", description = "Plays a track.")
@@ -58,7 +58,7 @@ public class Aliases implements SlashInterface {
     
         @Override
         public Aliases create(ApplicationManager manager, GuildContext context, Guild guild) {
-            return new Aliases(manager, context, guild);
+            return new Aliases(manager, context);
         }
     }
 }
