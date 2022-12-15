@@ -73,7 +73,7 @@ public class Bot {
 
     public static void main(String[] args) {
         if (bot != null) throw new IllegalStateException();
-
+        
         runtimeFlags = new RuntimeFlags(args).getFlags();
         bot = new Bot();
     }
@@ -92,12 +92,6 @@ public class Bot {
         System.out.println(STARTUP);
 
         log.info("Starting MusicGods...");
-
-        try {
-            Thread.sleep(1000);
-        }
-        catch (InterruptedException ignore) {}
-
         log.info("Using flags '{}'", runtimeFlags.stream().map(flag -> flag.longFlag).collect(Collectors.joining(", ")));
 
         ffmpeg = setupFFMPEG();
@@ -298,6 +292,5 @@ public class Bot {
     static Consumer<ReadyEvent> MIGRATION_CONSUMER = event -> {
         log.info("Migrating commands in {} out of {} guilds ({} unavailable)", event.getGuildAvailableCount(), event.getGuildTotalCount(), event.getGuildUnavailableCount());
         event.getJDA().getGuilds().stream().map(Guild::updateCommands).forEach(RestAction::queue);
-        log.info("Finished migration, please restart.");
     };
 }
