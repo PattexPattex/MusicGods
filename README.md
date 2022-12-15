@@ -9,8 +9,6 @@
 [![Issues](https://img.shields.io/github/issues/PattexPattex/MusicGods?style=flat-square)](https://github.com/PattexPattex/MusicGods/issues)
 [![Ko-fi](https://img.shields.io/badge/donate-Ko--fi-red?style=flat-square&logo=kofi)](https://ko-fi.com/pattexpattex)
 
----
-
 <h2>A powerful Discord music bot that you can easily host yourself!</h2>
 
 Some of its features include:
