@@ -111,7 +111,7 @@ public class Bot {
 
         try {
             jda = JDABuilder.createDefault(config.getToken(), GUILD_MESSAGES, GUILD_VOICE_STATES)
-                    .disableCache(CacheFlag.EMOJI, CacheFlag.STICKER)
+                    .disableCache(CacheFlag.EMOJI, CacheFlag.STICKER, CacheFlag.SCHEDULED_EVENTS)
                     .enableCache(CacheFlag.VOICE_STATE)
                     .setActivity(Activity.watching("me load"))
                     .setStatus((config.getStatus() == OnlineStatus.INVISIBLE || config.getStatus() == OnlineStatus.OFFLINE ? OnlineStatus.INVISIBLE : OnlineStatus.DO_NOT_DISTURB))
