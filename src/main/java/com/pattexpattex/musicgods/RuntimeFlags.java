@@ -51,7 +51,7 @@ public class RuntimeFlags {
         @Nullable
         public static Flags fromInput(String string) {
             return Arrays.stream(Flags.values())
-                    .filter(flag -> String.format("-%s", string).equals(flag.shortFlag) || String.format("--%s", string).equals(flag.longFlag))
+                    .filter(flag -> ("-" + flag.shortFlag).equals(string) || ("--" + flag.longFlag).equals(string))
                     .findFirst().orElseGet(() -> {
                         log.warn("Unknown argument '{}'", string);
                         return null;
