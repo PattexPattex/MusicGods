@@ -138,7 +138,9 @@ public class ApplicationManager extends ListenerAdapter {
         InteractionMessageDispatcher messageDispatcher = new SlashMessageDispatcherImpl(event);
         Member member = event.getMember();
 
-        if (event.getGuild() == null || member == null || member.getUser().isBot()) return;
+        if (event.getGuild() == null || member == null || member.getUser().isBot()) {
+            return;
+        }
 
         GuildContext context = getGuildContext(event.getGuild());
 
@@ -174,16 +176,6 @@ public class ApplicationManager extends ListenerAdapter {
             public void exception(SlashCommandInteractionEvent event, SlashPath path, Throwable throwable) {
                 messageDispatcher.sendMessage(String.format("Command threw an exception: %s", throwable));
                 log.error("Command ({}) threw an exception", path, throwable);
-            }
-    
-            @Override
-            public void privateOnly(SlashCommandInteractionEvent event, SlashPath path) {
-                messageDispatcher.sendMessage("Sorry, this command works only in direct messages.");
-            }
-    
-            @Override
-            public void guildOnly(SlashCommandInteractionEvent event, SlashPath path) {
-                messageDispatcher.sendMessage("Sorry, this command works only in servers.");
             }
         });
     }
@@ -312,8 +304,16 @@ public class ApplicationManager extends ListenerAdapter {
             if (Bot.MIGRATION_CONSUMER == null) {
                 log.info("Nothing to update!");
             } else {
-                Bot.MIGRATION_CONSUMER.accept(event);
-                bot.shutdown();
+                try {
+                    Bot.MIGRATION_CONSUMER.accept(event);
+                    log.info("Finished migration, please restart.");
+                    shutdown();
+                    event.getJDA().shutdown();
+                    System.exit(0);
+                } catch (Throwable e) {
+                    log.error("Encountered an exception while migrating", e);
+                    System.exit(-1);
+                }
             }
         }
         

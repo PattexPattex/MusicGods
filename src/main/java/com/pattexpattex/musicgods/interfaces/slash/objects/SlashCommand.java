@@ -2,8 +2,6 @@ package com.pattexpattex.musicgods.interfaces.slash.objects;
 
 import com.pattexpattex.musicgods.annotations.Permissions;
 import com.pattexpattex.musicgods.annotations.slash.Grouped;
-import com.pattexpattex.musicgods.annotations.slash.GuildOnly;
-import com.pattexpattex.musicgods.annotations.slash.PrivateOnly;
 import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
 import com.pattexpattex.musicgods.interfaces.slash.SlashDataBuilder;
 import com.pattexpattex.musicgods.interfaces.slash.SlashInterfaceManager;
@@ -75,7 +73,6 @@ public class SlashCommand {
                                       Class<? extends SlashInterface> controller, Method method) {
         SlashHandle handle = method.getAnnotation(SlashHandle.class);
         Permissions permissions = method.getAnnotation(Permissions.class);
-        int flags = accessibilityFlags(method);
 
         Grouped grouped = method.getAnnotation(Grouped.class);
 
@@ -87,24 +84,20 @@ public class SlashCommand {
         SlashCommand command = commands.get(path.getBase());
 
         if (command == null) {
-            command = create(path, manager, grouped, permissions, flags);
+            command = create(path, manager, grouped, permissions);
             commands.put(path.getBase(), command);
         }
 
-        command.addEndpoint(SlashEndpoint.of(controller, handle, flags, permissions, method));
+        command.addEndpoint(SlashEndpoint.of(controller, handle, permissions, method));
         SlashDataBuilder.addEndpoint(method, handle, command);
     }
 
     private static SlashCommand create(SlashPath path, SlashInterfaceManager manager,
-                                       Grouped grouped, Permissions permissions, int flags) {
+                                       Grouped grouped, Permissions permissions) {
         return new SlashCommand(
-                (Data) SlashDataBuilder.buildEmpty(path).setGuildOnly(flags % 2 == 1),
+                (Data) SlashDataBuilder.buildEmpty(path).setGuildOnly(true),
                 manager.getGroupManager().getGroup(grouped),
                 (permissions == null ? Permission.EMPTY_PERMISSIONS : permissions.command()));
-    }
-    
-    private static int accessibilityFlags(Method method) {
-        return (method.getAnnotation(GuildOnly.class) == null ? 0 : 1) + ((method.getAnnotation(PrivateOnly.class) == null ? 0 : 1) << 1);
     }
 
     /*
