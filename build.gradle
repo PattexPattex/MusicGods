@@ -81,6 +81,13 @@ test {
     useJUnitPlatform()
 }
 
+distTar.dependsOn(shadowJar)
+distZip.dependsOn(shadowJar)
+startScripts.dependsOn(shadowJar)
+startShadowScripts.dependsOn(jar)
+shadowDistTar.dependsOn(jar)
+shadowDistZip.dependsOn(jar)
+
 shadowJar {
     archiveFileName = "${project.name}-${project.version}.jar"
 }
