@@ -41,7 +41,7 @@ public class AutocompleteInterfaceManager {
     public void dispatch(Map<Class<? extends AutocompleteInterface>, AutocompleteInterface> controllers,
                          CommandAutoCompleteInteractionEvent event, AutocompleteResponseHandler handler) {
         AutoCompleteQuery query = event.getFocusedOption();
-        SlashPath path = new SlashPath(event.getCommandPath() + "/" + query.getName());
+        SlashPath path = new SlashPath(event.getFullCommandName() + "/" + query.getName());
         AutocompleteEndpoint endpoint = endpoints.get(path.toString());
         
         if (endpoint == null) {

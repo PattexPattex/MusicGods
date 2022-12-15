@@ -7,7 +7,7 @@ public class SlashPath {
     private final String[] elements;
 
     public SlashPath(String compiled) {
-        this.elements = compiled.split("/");
+        this.elements = compiled.replace(' ', '/').split("/");
 
         if (this.elements.length > 4)
             throw new IllegalArgumentException(compiled + " is not a valid path");

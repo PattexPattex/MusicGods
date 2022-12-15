@@ -45,7 +45,7 @@ public class SlashInterfaceManager {
 
     public void dispatch(Map<Class<? extends SlashInterface>, SlashInterface> controllers,
                          SlashCommandInteractionEvent event, SlashResponseHandler handler) {
-        SlashPath path = new SlashPath(event.getCommandPath());
+        SlashPath path = new SlashPath(event.getFullCommandName());
         SlashEndpoint endpoint = getEndpointFromPath(path);
 
         if (endpoint == null) {
@@ -115,7 +115,7 @@ public class SlashInterfaceManager {
                 args[i + 1] = parseSingleArg(parameter.type(), event.getOption(parameter.name()), parameter.required());
             }
             catch (WrongArgumentException e) {
-                handler.wrongParameterType(event, new SlashPath(event.getCommandPath()), i, e, parameter);
+                handler.wrongParameterType(event, new SlashPath(event.getFullCommandName()), i, e, parameter);
                 return true;
             }
         }
@@ -145,7 +145,7 @@ public class SlashInterfaceManager {
         Permission[] rp = metadata.getMain();
 
         if (rp.length > 0 && !member.hasPermission(rp)) {
-            handler.restricted(event, new SlashPath(event.getCommandPath()),
+            handler.restricted(event, new SlashPath(event.getFullCommandName()),
                     metadata.getMain(), mp.toArray(Permission[]::new));
             return true;
         }
@@ -155,7 +155,7 @@ public class SlashInterfaceManager {
         Permission[] rsp = metadata.getSelf();
 
         if (rsp.length > 0 && !self.hasPermission(rsp)) {
-            handler.selfRestricted(event, new SlashPath(event.getCommandPath()),
+            handler.selfRestricted(event, new SlashPath(event.getFullCommandName()),
                     metadata.getSelf(), sp.toArray(Permission[]::new));
             return true;
         }
