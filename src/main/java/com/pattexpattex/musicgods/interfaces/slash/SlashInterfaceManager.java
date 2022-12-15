@@ -54,10 +54,13 @@ public class SlashInterfaceManager {
             log.warn("Received an unknown SlashCommandInteraction: {}", path, new NoSuchElementException());
             return;
         }
-
+    
+    
+        if (checkAccessibility(event, endpoint, handler)) return;
+        if (checkPermissions(event, endpoint, handler)) return;
+        
         Object[] args = new Object[endpoint.getParametersSize() + 1];
         if (parseArgs(event, args, endpoint, handler)) return;
-        if (checkPermissions(event, endpoint, handler)) return;
 
         try {
             endpoint.getMethod().invoke(controllers.get(endpoint.getController()), args);
@@ -168,6 +171,23 @@ public class SlashInterfaceManager {
             return true;
         }
 
+        return false;
+    }
+    
+    private boolean checkAccessibility(SlashCommandInteractionEvent event,
+                                       SlashEndpoint endpoint,
+                                       SlashResponseHandler handler) {
+        switch (endpoint.getFlags()) {
+            case 1 -> {
+                handler.guildOnly(event, endpoint.getPath());
+                return true;
+            }
+            case 2 -> {
+                handler.privateOnly(event, endpoint.getPath());
+                return true;
+            }
+        }
+        
         return false;
     }
 

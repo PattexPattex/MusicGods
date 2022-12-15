@@ -6,6 +6,8 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 public interface SlashResponseHandler {
     void notFound(SlashCommandInteractionEvent event, SlashPath path);
+    void privateOnly(SlashCommandInteractionEvent event, SlashPath path);
+    void guildOnly(SlashCommandInteractionEvent event, SlashPath path);
     void wrongParameterType(SlashCommandInteractionEvent event, SlashPath path, int index, WrongArgumentException e, SlashParameter expected);
     void restricted(SlashCommandInteractionEvent event, SlashPath path, Permission[] required, Permission[] found);
     void selfRestricted(SlashCommandInteractionEvent event, SlashPath path, Permission[] required, Permission[] found);

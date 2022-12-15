@@ -31,9 +31,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
-import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
@@ -176,6 +174,16 @@ public class ApplicationManager extends ListenerAdapter {
             public void exception(SlashCommandInteractionEvent event, SlashPath path, Throwable throwable) {
                 messageDispatcher.sendMessage(String.format("Command threw an exception: %s", throwable));
                 log.error("Command ({}) threw an exception", path, throwable);
+            }
+    
+            @Override
+            public void privateOnly(SlashCommandInteractionEvent event, SlashPath path) {
+                messageDispatcher.sendMessage("Sorry, this command works only in direct messages.");
+            }
+    
+            @Override
+            public void guildOnly(SlashCommandInteractionEvent event, SlashPath path) {
+                messageDispatcher.sendMessage("Sorry, this command works only in servers.");
             }
         });
     }

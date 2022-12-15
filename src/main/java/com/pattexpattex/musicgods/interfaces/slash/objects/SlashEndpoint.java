@@ -16,14 +16,16 @@ public class SlashEndpoint {
     private final Permissions metadata;
     private final Class<? extends SlashInterface> controller;
     private final Method method;
+    private final int flags;
 
     private SlashEndpoint(SlashPath path, List<SlashParameter> parameters, Permissions metadata,
-                          Class<? extends SlashInterface> controller, Method method) {
+                          Class<? extends SlashInterface> controller, Method method, int flags) {
         this.path = path;
         this.parameters = parameters;
         this.metadata = metadata;
         this.controller = controller;
         this.method = method;
+        this.flags = flags;
     }
 
     public SlashPath getPath() {
@@ -41,6 +43,18 @@ public class SlashEndpoint {
     public Permissions getPermissions() {
         return metadata;
     }
+    
+    public boolean isGuildOnly() {
+        return flags % 2 == 1;
+    }
+    
+    public boolean isPrivateOnly() {
+        return  (flags >> 1) % 2 == 1;
+    }
+    
+    public int getFlags() {
+        return flags;
+    }
 
     public Class<? extends SlashInterface> getController() {
         return controller;
@@ -50,7 +64,7 @@ public class SlashEndpoint {
         return method;
     }
 
-    public static SlashEndpoint of(Class<? extends SlashInterface> controller, SlashHandle handle,
+    public static SlashEndpoint of(Class<? extends SlashInterface> controller, SlashHandle handle, int flags,
                                    com.pattexpattex.musicgods.annotations.Permissions permissions, Method method) {
         SlashPath path = new SlashPath(handle.path());
         Parameter[] methodParameters = method.getParameters();
@@ -70,19 +84,18 @@ public class SlashEndpoint {
             }
 
             String name = slashParameter.name();
-            if (name.isBlank())
+            if (name.isBlank()) {
                 name = par.getName();
+            }
 
             commandParameters.add(new SlashParameter(name, ParameterType.ofClass(par.getType()), slashParameter.required()));
         }
 
-        if (permissions == null)
-            return new SlashEndpoint(path, commandParameters,
-                    new Permissions(com.pattexpattex.musicgods.annotations.Permissions.DEFAULT,
-                            com.pattexpattex.musicgods.annotations.Permissions.SELF_DEFAULT), controller, method);
+        if (permissions == null) {
+            return new SlashEndpoint(path, commandParameters, Permissions.DEFAULT, controller, method, flags);
+        }
 
-        return new SlashEndpoint(path, commandParameters,
-                new Permissions(permissions.value(), permissions.self()), controller, method);
+        return new SlashEndpoint(path, commandParameters, new Permissions(permissions.value(), permissions.self()), controller, method, flags);
     }
 
     public static class Permissions {
@@ -102,5 +115,7 @@ public class SlashEndpoint {
         public Permission[] getSelf() {
             return selfPermissions;
         }
+        
+        public static final Permissions DEFAULT = new Permissions(com.pattexpattex.musicgods.annotations.Permissions.DEFAULT, com.pattexpattex.musicgods.annotations.Permissions.SELF_DEFAULT);
     }
 }
