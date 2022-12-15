@@ -2,6 +2,8 @@ package com.pattexpattex.musicgods.interfaces.slash.objects;
 
 import com.pattexpattex.musicgods.annotations.Permissions;
 import com.pattexpattex.musicgods.annotations.slash.Grouped;
+import com.pattexpattex.musicgods.annotations.slash.GuildOnly;
+import com.pattexpattex.musicgods.annotations.slash.PrivateOnly;
 import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
 import com.pattexpattex.musicgods.interfaces.slash.SlashDataBuilder;
 import com.pattexpattex.musicgods.interfaces.slash.SlashInterfaceManager;
@@ -58,8 +60,9 @@ public class SlashCommand {
     public SlashEndpoint getEndpointByPath(SlashPath path) {
         SlashEndpoint endpoint = endpoints.get(path.toString());
 
-        if (endpoint == null)
+        if (endpoint == null) {
             endpoint = endpoints.get(path.getBase());
+        }
 
         return endpoint;
     }
@@ -72,30 +75,36 @@ public class SlashCommand {
                                       Class<? extends SlashInterface> controller, Method method) {
         SlashHandle handle = method.getAnnotation(SlashHandle.class);
         Permissions permissions = method.getAnnotation(Permissions.class);
+        int flags = accessibilityFlags(method);
 
         Grouped grouped = method.getAnnotation(Grouped.class);
 
-        if (grouped == null)
+        if (grouped == null) {
             grouped = method.getDeclaringClass().getAnnotation(Grouped.class);
+        }
 
         SlashPath path = new SlashPath(handle.path());
         SlashCommand command = commands.get(path.getBase());
 
         if (command == null) {
-            command = create(path, manager, grouped, permissions);
+            command = create(path, manager, grouped, permissions, flags);
             commands.put(path.getBase(), command);
         }
 
-        command.addEndpoint(SlashEndpoint.of(controller, handle, permissions, method));
+        command.addEndpoint(SlashEndpoint.of(controller, handle, flags, permissions, method));
         SlashDataBuilder.addEndpoint(method, handle, command);
     }
 
     private static SlashCommand create(SlashPath path, SlashInterfaceManager manager,
-                                       Grouped grouped, Permissions permissions) {
+                                       Grouped grouped, Permissions permissions, int flags) {
         return new SlashCommand(
-                SlashDataBuilder.buildEmpty(path),
+                (Data) SlashDataBuilder.buildEmpty(path).setGuildOnly(flags % 2 == 1),
                 manager.getGroupManager().getGroup(grouped),
                 (permissions == null ? Permission.EMPTY_PERMISSIONS : permissions.command()));
+    }
+    
+    private static int accessibilityFlags(Method method) {
+        return (method.getAnnotation(GuildOnly.class) == null ? 0 : 1) + ((method.getAnnotation(PrivateOnly.class) == null ? 0 : 1) << 1);
     }
 
     /*

@@ -294,21 +294,25 @@ public class ApplicationManager extends ListenerAdapter {
     /* ---- Other listeners ---- */
 
     @Override
-    public void onGuildReady(@NotNull GuildReadyEvent event) {
-        if (!Bot.isLazy())
-            interfaceManager.getSlashManager().updateCommands(event.getGuild());
-    }
-
-    @Override
-    public void onGuildJoin(@NotNull GuildJoinEvent event) {
-        interfaceManager.getSlashManager().updateCommands(event.getGuild());
-    }
-
-    @Override
     public void onReady(@NotNull ReadyEvent event) {
         log.info("Available guilds: {} | Unavailable guilds: {} | Total guilds: {}",
                 event.getGuildAvailableCount(), event.getGuildUnavailableCount(), event.getGuildTotalCount());
 
+        if (RuntimeFlags.Flags.UPDATE.isActive()) {
+            log.info("Performing update migration...");
+            
+            if (Bot.MIGRATION_CONSUMER == null) {
+                log.info("Nothing to update!");
+            } else {
+                Bot.MIGRATION_CONSUMER.accept(event);
+                bot.shutdown();
+            }
+        }
+        
+        if (!RuntimeFlags.Flags.LAZY.isActive()) {
+            interfaceManager.getSlashManager().updateGlobalCommands(event.getJDA());
+        }
+        
         bot.getGuildConfig().cleanupGuilds(event.getJDA());
         bot.checkForUpdates();
     }
@@ -322,8 +326,9 @@ public class ApplicationManager extends ListenerAdapter {
     public void onGuildLeave(@NotNull GuildLeaveEvent event) {
         GuildContext context = guildContexts.remove(event.getGuild().getIdLong());
 
-        if (context != null)
+        if (context != null) {
             context.destroy();
+        }
     }
     
     @Override
@@ -346,17 +351,24 @@ public class ApplicationManager extends ListenerAdapter {
     public void cleanTemp() {
         File dir = new File("temp");
 
-        if (!dir.exists()) return;
+        if (!dir.exists()) {
+            return;
+        }
 
         File[] content = dir.listFiles();
 
-        if (content == null) return;
+        if (content == null) {
+            return;
+        }
 
         for (File file : content) {
-            if (file.isDirectory()) continue;
+            if (file.isDirectory()) {
+                continue;
+            }
 
-            if (!file.delete())
+            if (!file.delete()) {
                 log.warn("Couldn't delete temp file '{}'", file.getName());
+            }
         }
     }
 }

@@ -55,9 +55,11 @@ public class GuildConfigManager {
     }
     
     public void cleanupGuilds(JDA jda) {
-        for (long id : configMap.keySet())
-            if (jda.getGuildById(id) == null)
+        for (long id : configMap.keySet()) {
+            if (jda.getGuildById(id) == null) {
                 configMap.remove(id);
+            }
+        }
         
         write();
     }

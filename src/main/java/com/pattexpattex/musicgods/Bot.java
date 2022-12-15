@@ -3,6 +3,7 @@ package com.pattexpattex.musicgods;
 import com.pattexpattex.musicgods.config.Config;
 import com.pattexpattex.musicgods.config.storage.GuildConfigManager;
 import com.pattexpattex.musicgods.util.BundledLibs;
+import com.pattexpattex.musicgods.util.FormatUtils;
 import com.pattexpattex.musicgods.util.OtherUtils;
 import com.sedmelluq.discord.lavaplayer.jdaudp.NativeAudioSendFactory;
 import net.dv8tion.jda.api.JDA;
@@ -10,18 +11,25 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
+import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static net.dv8tion.jda.api.requests.GatewayIntent.GUILD_MESSAGES;
 import static net.dv8tion.jda.api.requests.GatewayIntent.GUILD_VOICE_STATES;
@@ -54,9 +62,10 @@ public class Bot {
             """;
 
     private static final Logger log = LoggerFactory.getLogger(Bot.class);
-
     private static final AtomicBoolean isShuttingDown = new AtomicBoolean();
-    private static boolean lazy = false;
+    private static final long start = System.currentTimeMillis();
+    
+    private static List<RuntimeFlags.Flags> runtimeFlags;
     private static BundledLibs.FFMPEG ffmpeg;
     private static BundledLibs.YTDL ytdl;
 
@@ -65,9 +74,7 @@ public class Bot {
     public static void main(String[] args) {
         if (bot != null) throw new IllegalStateException();
 
-        if (args.length > 0 && (args[0].equals("-l") || args[0].equals("--lazy")))
-            lazy = true;
-
+        runtimeFlags = new RuntimeFlags(args).getFlags();
         bot = new Bot();
     }
 
@@ -91,8 +98,7 @@ public class Bot {
         }
         catch (InterruptedException ignore) {}
 
-        if (lazy)
-            log.info("Booting in lazy mode...");
+        log.info("Using flags '{}'", runtimeFlags.stream().map(flag -> flag.longFlag).collect(Collectors.joining(", ")));
 
         ffmpeg = setupFFMPEG();
         ytdl = setupYTDL();
@@ -135,7 +141,7 @@ public class Bot {
         log.info("Shutting down...");
         applicationManager.shutdown();
         jda.shutdown();
-        log.info("Goodbye!");
+        log.info("Goodbye! - Total uptime: {}", FormatUtils.formatTimestamp(System.currentTimeMillis() - start));
         System.exit(0);
     }
 
@@ -160,8 +166,9 @@ public class Bot {
     }
     
     public void checkForUpdates() {
-        if (!config.getUpdateAlerts())
+        if (!config.getUpdateAlerts()) {
             return;
+        }
 
         applicationManager.getExecutorService().scheduleWithFixedDelay(() -> {
             try {
@@ -169,11 +176,13 @@ public class Bot {
                 String latest = OtherUtils.getLatestVersion();
                 User owner = jda.retrieveUserById(config.getOwner()).complete();
 
-                if (latest == null)
+                if (latest == null) {
                     return;
+                }
 
-                if (current.equalsIgnoreCase(latest))
+                if (current.equalsIgnoreCase(latest)) {
                     return;
+                }
 
                 owner.openPrivateChannel()
                         .flatMap(channel -> channel.sendMessage(String.format(UPDATE_MSG, current, latest, GITHUB, latest)))
@@ -192,9 +201,9 @@ public class Bot {
     public static long getApplicationId() {
         return bot.getJDA().getSelfUser().getApplicationIdLong();
     }
-
-    public static boolean isLazy() {
-        return lazy;
+    
+    public static List<RuntimeFlags.Flags> getRuntimeFlags() {
+        return runtimeFlags;
     }
 
 
@@ -281,4 +290,14 @@ public class Bot {
 
         return BundledLibs.YTDL.BUNDLED;
     }
+    
+    /**
+     * This {@link Consumer} is executed when the {@code -up} flag is applied. To disable, set to {@code null}.
+     */
+    @Nullable
+    static Consumer<ReadyEvent> MIGRATION_CONSUMER = event -> {
+        log.info("Migrating commands in {} out of {} guilds ({} unavailable)", event.getGuildAvailableCount(), event.getGuildTotalCount(), event.getGuildUnavailableCount());
+        event.getJDA().getGuilds().stream().map(Guild::updateCommands).forEach(RestAction::queue);
+        log.info("Finished migration, please restart.");
+    };
 }

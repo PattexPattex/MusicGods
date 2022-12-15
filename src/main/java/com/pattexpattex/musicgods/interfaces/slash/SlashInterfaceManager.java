@@ -4,6 +4,7 @@ import com.pattexpattex.musicgods.Bot;
 import com.pattexpattex.musicgods.exceptions.WrongArgumentException;
 import com.pattexpattex.musicgods.interfaces.InterfaceManagerConnector;
 import com.pattexpattex.musicgods.interfaces.slash.objects.*;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -79,14 +80,21 @@ public class SlashInterfaceManager {
         SlashCommand.createEndpoint(this, commands, controllerClass, method);
     }
 
+    public void updateGlobalCommands(JDA jda) {
+        jda.updateCommands().addCommands(commands
+                .values()
+                .stream()
+                .map(SlashCommand::getData)
+                .toArray(SlashCommandData[]::new)
+        ).queue();
+    }
+    
     public void updateCommands(Guild guild) {
-        //guild.updateCommands().queue();
-        guild.updateCommands()
-                .addCommands(commands.values()
-                        .stream()
-                        .map(SlashCommand::getData)
-                        .toArray(SlashCommandData[]::new))
-                .queue();
+        guild.updateCommands().addCommands(commands
+                .values()
+                .stream()
+                .map(SlashCommand::getData)
+                .toArray(SlashCommandData[]::new)).queue();
     }
     
     @Nullable
