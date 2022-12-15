@@ -24,6 +24,7 @@ Some of its features include:
 This project heavily depends on the [JDA](https://github.com/DV8FromTheWorld/JDA) and [Lavaplayer](https://github.com/Walkyst/lavaplayer-fork) libraries and was inspired by [JMusicBot](https://github.com/jagrosh/MusicBot).
 
 <h2>Table of contents</h2>
+
 <!-- TOC -->
   * [Getting started](#getting-started)
   * [Supported audio sources](#supported-audio-sources)
