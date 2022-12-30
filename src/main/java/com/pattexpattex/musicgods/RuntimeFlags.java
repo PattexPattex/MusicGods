@@ -35,7 +35,8 @@ public class RuntimeFlags {
     
     public enum Flags {
         UPDATE(0, "up", "update"),
-        LAZY(1, "l", "lazy")
+        LAZY(1, "l", "lazy"),
+        VERBOSE(2, "v", "verbose")
         ;
         
         public final int offset;
