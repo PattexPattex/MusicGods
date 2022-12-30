@@ -22,7 +22,7 @@ public class FormatUtils {
     public static final Pattern HTTP_PATTERN = Pattern.compile("^([<|*_`]{0,3})(http|https)://[a-zA-Z\\d\\-.]+\\.[a-zA-Z]{2,6}(/\\S*)?([>|*_`]{0,3})$");
     
     private static final String[] DATE_PARSER_PATTERNS = { "HH:mm:ss", "H:mm:ss", "mm:ss", "m:ss" };
-    private static final String AVATAR = "https://imgur.com/fMEiH2k.png";
+    private static final String AVATAR = "https://raw.githubusercontent.com/PattexPattex/MusicGods/master/.github/image.png";
     private static final Color COLOR = new Color(0xDFE393);
 
     private FormatUtils() {}
