@@ -1,10 +1,9 @@
 package com.pattexpattex.musicgods.music.download;
 
-import com.pattexpattex.musicgods.Bot;
+import com.pattexpattex.musicgods.Launcher;
 import com.pattexpattex.musicgods.music.Kvintakord;
 import com.pattexpattex.musicgods.music.audio.TrackMetadata;
 import com.pattexpattex.musicgods.music.spotify.SpotifyAudioSourceManager;
-import com.pattexpattex.musicgods.util.BundledLibs;
 import com.pattexpattex.musicgods.util.FormatUtils;
 import com.pattexpattex.musicgods.util.OtherUtils;
 import com.sapher.youtubedl.YoutubeDL;
@@ -33,26 +32,14 @@ public class TrackDownloader {
 
     private static final Logger log = LoggerFactory.getLogger(TrackDownloader.class);
     private static final String FILE_NAME = "temp/%s.%%(ext)s";
-    private static final Random RANDOM = Bot.getInstance().getRandom();
+    private static final Random RANDOM = Launcher.getInstance().getRandom();
 
     private static final AtomicBoolean DISABLED = new AtomicBoolean();
     private static final AtomicBoolean ACTIVE = new AtomicBoolean();
 
     static {
-        BundledLibs.YTDL ytdl = Bot.getYTDlStatus();
-
-        switch (ytdl) {
-            case NOT_FOUND -> DISABLED.set(true);
-            case BUNDLED -> {
-                DISABLED.set(false);
-                YoutubeDL.setExecutablePath("bin/youtube-dl.exe");
-            }
-            default -> DISABLED.set(false);
-        }
-
-        if (!DISABLED.get()) {
-            BundledLibs.FFMPEG ffmpeg = Bot.getFFMpegStatus();
-            DISABLED.set(ffmpeg == BundledLibs.FFMPEG.NOT_FOUND);
+        if (!Launcher.isFfmpeg() || !Launcher.isYTDL()) {
+            DISABLED.set(true);
         }
     }
 
@@ -71,8 +58,9 @@ public class TrackDownloader {
 
     public CompletableFuture<Void> start() {
         return CompletableFuture.supplyAsync(() -> {
-            if (url == null)
+            if (url == null) {
                 return null;
+            }
 
             hook.editOriginal("Starting download, this may take a while...").queue();
 
@@ -91,7 +79,7 @@ public class TrackDownloader {
 
                 YoutubeDLResponse response = YoutubeDL.execute(request, (progress, eta) -> hook.editOriginal(
                         String.format("Download progress: `%s` (`%s%%`) **|** Estimated time left: `%s`",
-                                FormatUtils.buildFullLine(((double) progress) / 100, 12), progress,
+                                FormatUtils.buildFullLine(progress / 100, 10), progress,
                                 FormatUtils.formatTimestamp(eta * 1000L))).queue());
 
                 log.info("Completed download: {}", response.getCommand());

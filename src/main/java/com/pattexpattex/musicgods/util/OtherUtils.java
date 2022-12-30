@@ -1,6 +1,7 @@
 package com.pattexpattex.musicgods.util;
 
 import com.pattexpattex.musicgods.Bot;
+import com.pattexpattex.musicgods.Launcher;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
@@ -66,13 +67,13 @@ public class OtherUtils {
     }
 
     public static String getInviteUrl() {
-        JDA jda = Bot.getInstance().getJDA();
+        JDA jda = Launcher.getInstance().getJDA();
         jda.setRequiredScopes("bot", "applications.commands");
-        return jda.getInviteUrl(Bot.PERMISSIONS);
+        return jda.getInviteUrl(Launcher.permissions);
     }
 
     public static boolean isBotPublic() {
-        return Bot.getInstance().getJDA().retrieveApplicationInfo().complete().isBotPublic();
+        return Launcher.getInstance().getJDA().retrieveApplicationInfo().complete().isBotPublic();
     }
 
     public static Logger getLog() {

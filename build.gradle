@@ -7,6 +7,8 @@ plugins {
 group 'com.pattexpattex'
 version '0.2.2'
 
+String mainClass = 'com.pattexpattex.musicgods.Launcher'
+
 sourceCompatibility = 17
 targetCompatibility = 17
 
@@ -50,35 +52,23 @@ dependencies {
     runtimeOnly 'org.jetbrains.kotlin:kotlin-scripting-jsr223:1.8.0' // Kotlin DSL
 }
 
-jar {
-    manifest {
-        attributes('Main-Class': 'com.pattexpattex.musicgods.Bot')
-        attributes('Implementation-Version': project.version)
-        attributes('Implementation-Title': project.name)
-        attributes('Implementation-Vendor-Id': project.group)
-    }
-}
+jar.manifest.attributes(
+        'Main-Class': mainClass,
+        'Implementation-Version': project.version,
+        'Implementation-Title': project.name,
+        'Implementation-Vendor-Id': project.group
+)
 
-application {
-    mainClass.set('com.pattexpattex.musicgods.Bot')
-}
+application.mainClass.set(mainClass)
+shadowJar.archiveFileName = "${project.name}-${project.version}.jar"
 
-javadoc {
-    options.encoding 'utf-8'
-}
+javadoc.options.encoding('utf-8')
+compileJava.options.encoding('utf-8')
+compileTestJava.options.encoding('utf-8')
 
-compileJava {
-    options.compilerArgs << '-parameters'
-    options.encoding 'utf-8'
-}
+compileJava.options.compilerArgs << '-parameters'
 
-compileTestJava {
-    options.encoding 'utf-8'
-}
-
-test {
-    useJUnitPlatform()
-}
+test.useJUnitPlatform()
 
 distTar.dependsOn(shadowJar)
 distZip.dependsOn(shadowJar)

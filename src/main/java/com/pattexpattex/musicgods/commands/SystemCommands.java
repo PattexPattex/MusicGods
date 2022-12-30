@@ -3,6 +3,7 @@ package com.pattexpattex.musicgods.commands;
 import com.pattexpattex.musicgods.ApplicationManager;
 import com.pattexpattex.musicgods.Bot;
 import com.pattexpattex.musicgods.GuildContext;
+import com.pattexpattex.musicgods.Launcher;
 import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterface;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterfaceFactory;
@@ -41,7 +42,7 @@ public class SystemCommands implements SlashInterface {
     @SlashHandle(path = "system/version", description = "Get versions of used libraries.")
     public void version(SlashCommandInteractionEvent event) {
         event.reply(String.format("Lavaplayer version: `%s`\nJDA version: `%s`\nMusicGods version: `%s`",
-                PlayerLibrary.VERSION, JDAInfo.VERSION, Bot.VERSION)).queue();
+                PlayerLibrary.VERSION, JDAInfo.VERSION, Launcher.version)).queue();
     }
 
     public static class Factory implements SlashInterfaceFactory<SystemCommands> {

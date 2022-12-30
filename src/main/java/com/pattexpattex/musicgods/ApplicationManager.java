@@ -301,11 +301,11 @@ public class ApplicationManager extends ListenerAdapter {
         if (RuntimeFlags.Flags.UPDATE.isActive()) {
             log.info("Performing update migration...");
             
-            if (Bot.MIGRATION_CONSUMER == null) {
+            if (Launcher.migrationConsumer == null) {
                 log.info("Nothing to update!");
             } else {
                 try {
-                    Bot.MIGRATION_CONSUMER.accept(event);
+                    Launcher.migrationConsumer.accept(event);
                     log.info("Finished migration, please restart.");
                     shutdown();
                     event.getJDA().shutdown();

@@ -2,85 +2,29 @@ package com.pattexpattex.musicgods;
 
 import com.pattexpattex.musicgods.config.Config;
 import com.pattexpattex.musicgods.config.storage.GuildConfigManager;
-import com.pattexpattex.musicgods.util.BundledLibs;
 import com.pattexpattex.musicgods.util.FormatUtils;
 import com.pattexpattex.musicgods.util.OtherUtils;
 import com.sedmelluq.discord.lavaplayer.jdaudp.NativeAudioSendFactory;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.session.ReadyEvent;
-import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static net.dv8tion.jda.api.requests.GatewayIntent.GUILD_MESSAGES;
 import static net.dv8tion.jda.api.requests.GatewayIntent.GUILD_VOICE_STATES;
 
 public class Bot {
-
-    public static final long DEVELOPER_ID = 714406547161350155L;
-    public static final String VERSION = OtherUtils.getCurrentVersion();
-    public static final String GITHUB = "https://github.com/PattexPattex/MusicGods";
-    public static final String DONATION = "https://ko-fi.com/pattexpattex";
-
-    private static final String UPDATE_MSG = "There is a new version of MusicGods available!\nCurrent: `%s` **|** Latest: `%s`\nGrab it here: %s/releases/tag/%s";
-
-    public static final Permission[] PERMISSIONS = {
-            Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ATTACH_FILES,
-            Permission.MESSAGE_HISTORY, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK, Permission.VOICE_DEAF_OTHERS,
-            Permission.VOICE_MOVE_OTHERS, Permission.VOICE_MUTE_OTHERS, Permission.VIEW_CHANNEL
-    };
-
-    private static final String STARTUP = """
- __  __           _       _____           _
-|  \\/  |         (_)     / ____|         | |
-| \\  / |_   _ ___ _  ___| |  __  ___   __| |___
-| |\\/| | | | / __| |/ __| | |_ |/ _ \\ / _` / __|
-| |  | | |_| \\__ \\ | (__| |__| | (_) | (_| \\__ \\\040\040""" + VERSION + """
- 
-|_|  |_|\\__,_|___/_|\\___|\\_____|\\___/ \\__,_|___/
-        
-  (https://github.com/PattexPattex/MusicGods)
-            """;
-
     private static final Logger log = LoggerFactory.getLogger(Bot.class);
     private static final AtomicBoolean isShuttingDown = new AtomicBoolean();
     private static final long start = System.currentTimeMillis();
-    
-    private static List<RuntimeFlags.Flags> runtimeFlags;
-    private static BundledLibs.FFMPEG ffmpeg;
-    private static BundledLibs.YTDL ytdl;
-
-    private static Bot bot;
-
-    public static void main(String[] args) {
-        if (bot != null) throw new IllegalStateException();
-        
-        runtimeFlags = new RuntimeFlags(args).getFlags();
-        bot = new Bot();
-    }
-
-    public static Bot getInstance() {
-        return bot;
-    }
     
     private JDA jda;
     private final Random random;
@@ -88,14 +32,10 @@ public class Bot {
     private final GuildConfigManager guildConfig;
     private final ApplicationManager applicationManager;
 
-    private Bot() {
-        System.out.println(STARTUP);
+    Bot() {
+        System.out.println(String.format(Launcher.startup, Launcher.version, Launcher.github));
 
         log.info("Starting MusicGods...");
-        log.info("Using flags '{}'", runtimeFlags.stream().map(flag -> flag.longFlag).collect(Collectors.joining(", ")));
-
-        ffmpeg = setupFFMPEG();
-        ytdl = setupYTDL();
 
         random = new Random();
         config = new Config();
@@ -125,8 +65,9 @@ public class Bot {
         jda.getPresence().setPresence(config.getStatus(), config.getActivity());
 
         String latest = OtherUtils.getLatestVersion();
-        if (latest != null && !Bot.VERSION.equalsIgnoreCase(latest))
-            log.info("There is a new update available: {} (current {}) - {}/releases/tag/{}", latest, VERSION, GITHUB, latest);
+        if (latest != null && !Launcher.version.equalsIgnoreCase(latest)) {
+            log.info("There is a new update available: {} (current {}) - {}/releases/latest", latest, Launcher.version, Launcher.github);
+        }
     }
 
     public void shutdown() {
@@ -166,7 +107,7 @@ public class Bot {
 
         applicationManager.getExecutorService().scheduleWithFixedDelay(() -> {
             try {
-                String current = Bot.VERSION;
+                String current = Launcher.version;
                 String latest = OtherUtils.getLatestVersion();
                 User owner = jda.retrieveUserById(config.getOwner()).complete();
 
@@ -179,7 +120,8 @@ public class Bot {
                 }
 
                 owner.openPrivateChannel()
-                        .flatMap(channel -> channel.sendMessage(String.format(UPDATE_MSG, current, latest, GITHUB, latest)))
+                        .flatMap(channel -> channel.sendMessage(String.format("There is a new version of MusicGods available!\nCurrent: `%s` **|** Latest: `%s`\nGrab it here: %s/releases/tag/%s",
+                                current, latest, Launcher.github, latest)))
                         .queue();
             }
             catch (Exception e) {
@@ -188,109 +130,4 @@ public class Bot {
 
         }, 0, 24, TimeUnit.HOURS);
     }
-
-
-    /* ---- Static methods ---- */
-
-    public static long getApplicationId() {
-        return bot.getJDA().getSelfUser().getApplicationIdLong();
-    }
-    
-    public static List<RuntimeFlags.Flags> getRuntimeFlags() {
-        return runtimeFlags;
-    }
-
-
-    /* ---- Bundled libraries / executables ---- */
-
-    public static BundledLibs.FFMPEG getFFMpegStatus() {
-        return ffmpeg;
-    }
-
-    public static BundledLibs.YTDL getYTDlStatus() {
-        return ytdl;
-    }
-
-    private static BundledLibs.FFMPEG setupFFMPEG() {
-        try {
-            Runtime.getRuntime().exec("ffmpeg -h");
-            log.info("Found ffmpeg in filesystem...");
-            return BundledLibs.FFMPEG.SYSTEM;
-        }
-        catch (IOException ignored) {
-        }
-
-        InputStream stream = Bot.class.getResourceAsStream("/bin/ffmpeg.exe");
-
-        if (stream == null) {
-            log.warn("Cannot find ffmpeg.exe in resources, please replace the .jar file");
-            return BundledLibs.FFMPEG.NOT_FOUND;
-        }
-
-        File ffmpeg = new File("bin/ffmpeg.exe");
-
-        try {
-            log.warn("Ffmpeg was not found, falling back to the bundled distribution...");
-
-            if (!ffmpeg.exists()) {
-                File dir = new File("bin");
-                if (dir.mkdir())
-                    log.info("Created '/bin'...");
-
-                Files.copy(stream, ffmpeg.toPath());
-            }
-        }
-        catch (IOException e) {
-            log.error("Something went wrong while extracting ffmpeg.exe", e);
-            return BundledLibs.FFMPEG.NOT_FOUND;
-        }
-
-        return BundledLibs.FFMPEG.BUNDLED;
-    }
-
-    private static BundledLibs.YTDL setupYTDL() {
-        try {
-            Runtime.getRuntime().exec("youtube-dl -h");
-            log.info("Found youtube-dl in filesystem...");
-            return BundledLibs.YTDL.SYSTEM;
-        }
-        catch (IOException ignored) {
-        }
-
-        InputStream stream = Bot.class.getResourceAsStream("/bin/youtube-dl.exe");
-
-        if (stream == null) {
-            log.warn("Cannot find youtube-dl.exe in resources, please replace the .jar file");
-            return BundledLibs.YTDL.NOT_FOUND;
-        }
-
-        File ytdl = new File("bin/youtube-dl.exe");
-
-        try {
-            log.warn("Youtube-dl was not found, falling back to the bundled distribution...");
-
-            if (!ytdl.exists()) {
-                File dir = new File("bin");
-                if (dir.mkdir())
-                    log.info("Created '/bin'...");
-
-                Files.copy(stream, ytdl.toPath());
-            }
-        }
-        catch (IOException e) {
-            log.error("Something went wrong while extracting youtube-dl.exe", e);
-            return BundledLibs.YTDL.NOT_FOUND;
-        }
-
-        return BundledLibs.YTDL.BUNDLED;
-    }
-    
-    /**
-     * This {@link Consumer} is executed when the {@code -up} flag is applied. To disable, set to {@code null}.
-     */
-    @Nullable
-    static Consumer<ReadyEvent> MIGRATION_CONSUMER = event -> {
-        log.info("Migrating commands in {} out of {} guilds ({} unavailable)", event.getGuildAvailableCount(), event.getGuildTotalCount(), event.getGuildUnavailableCount());
-        event.getJDA().getGuilds().stream().map(Guild::updateCommands).forEach(RestAction::queue);
-    };
 }

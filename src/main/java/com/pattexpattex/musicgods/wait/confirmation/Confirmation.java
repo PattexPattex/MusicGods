@@ -1,6 +1,7 @@
 package com.pattexpattex.musicgods.wait.confirmation;
 
 import com.pattexpattex.musicgods.Bot;
+import com.pattexpattex.musicgods.Launcher;
 import com.pattexpattex.musicgods.interfaces.button.objects.Button;
 import com.pattexpattex.musicgods.util.BotEmoji;
 import com.pattexpattex.musicgods.util.OtherUtils;
@@ -27,8 +28,8 @@ import java.util.function.Predicate;
 
 public class Confirmation {
     
-    private static final Random RANDOM = Bot.getInstance().getRandom();
-    private static final Waiter WAITER = Bot.getInstance().getApplicationManager().getWaiter();
+    private static final Random RANDOM = Launcher.getInstance().getRandom();
+    private static final Waiter WAITER = Launcher.getInstance().getApplicationManager().getWaiter();
     
     private final long id;
     private final long timeoutSeconds;

@@ -3,6 +3,7 @@ package com.pattexpattex.musicgods.commands;
 import com.pattexpattex.musicgods.ApplicationManager;
 import com.pattexpattex.musicgods.Bot;
 import com.pattexpattex.musicgods.GuildContext;
+import com.pattexpattex.musicgods.Launcher;
 import com.pattexpattex.musicgods.annotations.selection.SelectionHandle;
 import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
 import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterface;
@@ -73,7 +74,7 @@ public class HelpCommand implements SlashInterface, ButtonInterface, SelectionIn
     private static String helpBottomLine() {
         String a = String.format(
                 "[Github](%s) **|** [Submit an issue](%s) **|** [Support me](%s)",
-                Bot.GITHUB, Bot.GITHUB + "/issues", Bot.DONATION);
+                Launcher.github, Launcher.github + "/issues", Launcher.donation);
 
         if (OtherUtils.isBotPublic())
             a += String.format(" **|** [Invite me](%s)", OtherUtils.getInviteUrl());

@@ -1,6 +1,6 @@
 package com.pattexpattex.musicgods.util;
 
-import com.pattexpattex.musicgods.Bot;
+import com.pattexpattex.musicgods.Launcher;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Range;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -48,7 +48,7 @@ public class FormatUtils {
     public static EmbedBuilder embed() {
         return new EmbedBuilder()
                 .setColor(COLOR)
-                .setFooter(String.format("Powered by MusicGods %s.", Bot.VERSION), AVATAR)
+                .setFooter(String.format("Powered by MusicGods %s.", Launcher.version), AVATAR)
                 .setTimestamp(Instant.now());
     }
 
@@ -103,7 +103,7 @@ public class FormatUtils {
 
     public static String buildFullLine(@Range(min = 0, max = 1) double percent, int size) {
         StringBuilder builder = new StringBuilder();
-
+        
         for (int i = 0; i < size; i++) {
             if (i < (int) (percent * size))
                 builder.append(BLOCK);

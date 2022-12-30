@@ -3,6 +3,7 @@ package com.pattexpattex.musicgods.music.audio.filter.equalizer;
 import com.pattexpattex.musicgods.ApplicationManager;
 import com.pattexpattex.musicgods.Bot;
 import com.pattexpattex.musicgods.GuildContext;
+import com.pattexpattex.musicgods.Launcher;
 import com.pattexpattex.musicgods.annotations.button.ButtonHandle;
 import com.pattexpattex.musicgods.interfaces.button.objects.Button;
 import com.pattexpattex.musicgods.interfaces.button.objects.ButtonInterface;
@@ -27,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class EqualizerManager implements ButtonInterface {
     
-    private static final String PRESET_SUBMIT_URL = Bot.GITHUB + "/issues/new?template=new-equalizer-preset.md";
+    private static final String PRESET_SUBMIT_URL = Launcher.github + "/issues/new?template=new-equalizer-preset.md";
     
     public static final String[] GAIN_FREQUENCIES = { "25", "40", "63", "100", "160", "250", "400", "630", "1k", "1.6k", "2.5k", "4k", "6.3k", "10k", "16k" };
     public static final int[] GUI_GAINS = { 1, 4, 7, 10, 13 };

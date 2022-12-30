@@ -60,7 +60,7 @@ public class RuntimeFlags {
         }
         
         public boolean isActive() {
-            return Bot.getRuntimeFlags().contains(this);
+            return Launcher.getFlags().contains(this);
         }
     }
 }

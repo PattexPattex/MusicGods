@@ -2,7 +2,7 @@ package com.pattexpattex.musicgods.music.helpers;
 
 import com.jagrosh.jlyrics.Lyrics;
 import com.jagrosh.jlyrics.LyricsClient;
-import com.pattexpattex.musicgods.Bot;
+import com.pattexpattex.musicgods.Launcher;
 import com.pattexpattex.musicgods.music.audio.TrackMetadata;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.utils.SplitUtil;
@@ -25,11 +25,11 @@ public class LyricsManager {
     private final LyricsClient client;
 
     public LyricsManager() {
-        this(Bot.getInstance().getConfig().getLyricsProvider(), Bot.getInstance().getApplicationManager().getExecutorService());
+        this(Launcher.getInstance().getConfig().getLyricsProvider(), Launcher.getInstance().getApplicationManager().getExecutorService());
     }
     
     public LyricsManager(String provider) {
-        this(provider, Bot.getInstance().getApplicationManager().getExecutorService());
+        this(provider, Launcher.getInstance().getApplicationManager().getExecutorService());
     }
     
     public LyricsManager(String provider, Executor executor) {

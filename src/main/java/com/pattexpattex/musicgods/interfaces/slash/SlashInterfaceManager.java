@@ -1,6 +1,6 @@
 package com.pattexpattex.musicgods.interfaces.slash;
 
-import com.pattexpattex.musicgods.Bot;
+import com.pattexpattex.musicgods.Launcher;
 import com.pattexpattex.musicgods.exceptions.WrongArgumentException;
 import com.pattexpattex.musicgods.interfaces.InterfaceManagerConnector;
 import com.pattexpattex.musicgods.interfaces.slash.objects.*;
@@ -95,7 +95,7 @@ public class SlashInterfaceManager {
         return guild.retrieveCommands()
                 .complete()
                 .stream()
-                .filter(command -> command.getApplicationIdLong() == Bot.getApplicationId() &&
+                .filter(command -> command.getApplicationIdLong() == Launcher.getApplicationId() &&
                         command.getName().equals(path.getBase()))
                 .findAny()
                 .orElse(null);
