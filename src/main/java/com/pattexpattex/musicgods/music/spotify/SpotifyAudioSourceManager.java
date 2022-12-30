@@ -77,7 +77,7 @@ public class SpotifyAudioSourceManager implements AudioSourceManager {
     public void shutdown() {}
 
     private AudioItem loadItemOnce(AudioPlayerManager manager, AudioReference reference) {
-        if (spotifyManager.isNotEnabled()) return AudioReference.NO_TRACK;
+        if (spotifyManager.isNotEnabled()) return null;
 
         String identifier = reference.identifier;
         
@@ -100,13 +100,15 @@ public class SpotifyAudioSourceManager implements AudioSourceManager {
     private AudioItem searchOnSpotify(AudioPlayerManager manager, String query) {
         SearchResult result = spotifyManager.searchSpotify(query);
         
-        if (result == null)
+        if (result == null) {
             return AudioReference.NO_TRACK;
+        }
         
         Track[] tracks = result.getTracks().getItems();
         
-        if (tracks.length == 0)
+        if (tracks.length == 0) {
             return AudioReference.NO_TRACK;
+        }
         
         List<AudioTrack> list = fetchTracks(manager, tracks);
         String name = "Search results for: " + query;
