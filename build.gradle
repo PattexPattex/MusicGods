@@ -43,12 +43,12 @@ dependencies {
     implementation 'com.typesafe:config:1.4.2' //Typesafe (dependency of JLyrics)
     implementation 'org.jsoup:jsoup:1.15.3'
     implementation 'com.sapher:youtubedl:1.1' //YoutubeDL wrapper
-    implementation 'ch.obermuhlner:java-scriptengine:2.0.0' //Java script engine
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0' //Junit
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
 
-    compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.2' // javax.annotations
+    runtimeOnly 'org.jetbrains.kotlin:kotlin-scripting-jsr223:1.8.0' // Kotlin DSL
 }
 
 jar {

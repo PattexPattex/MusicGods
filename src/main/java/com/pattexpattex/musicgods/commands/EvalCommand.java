@@ -1,28 +1,41 @@
 package com.pattexpattex.musicgods.commands;
 
 import com.pattexpattex.musicgods.ApplicationManager;
-import com.pattexpattex.musicgods.Bot;
 import com.pattexpattex.musicgods.GuildContext;
+import com.pattexpattex.musicgods.annotations.modal.Element;
+import com.pattexpattex.musicgods.annotations.modal.ModalHandle;
 import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Parameter;
-import com.pattexpattex.musicgods.interfaces.button.objects.Button;
+import com.pattexpattex.musicgods.interfaces.modal.objects.ModalInterface;
+import com.pattexpattex.musicgods.interfaces.modal.objects.ModalInterfaceFactory;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterface;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterfaceFactory;
-import com.pattexpattex.musicgods.util.OtherUtils;
+import com.pattexpattex.musicgods.util.FormatUtils;
+import com.pattexpattex.musicgods.wait.confirmation.Confirmation;
+import com.pattexpattex.musicgods.wait.confirmation.ConfirmationResult;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
-import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
+import javax.script.ScriptException;
+import java.util.Objects;
 
-public class EvalCommand implements SlashInterface {
+public class EvalCommand implements SlashInterface, ModalInterface {
 
-    private static final AtomicLong COUNTER = new AtomicLong();
+    public static final String IMPORTS = """
+            import com.pattexpattex.musicgods.ApplicationManager
+            import com.pattexpattex.musicgods.GuildContext
+            import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
+        
+            val event: ButtonInteractionEvent = // ...
+            val manager: ApplicationManager = // ...
+            val ctx: GuildContext = // ...
+            /* You can use these variables, they are automatically supplied */
+            """;
 
     private final ApplicationManager manager;
     private final GuildContext context;
@@ -35,100 +48,62 @@ public class EvalCommand implements SlashInterface {
         this.guild = guild;
     }
 
-    @SlashHandle(path = "system/eval", description = "Run arbitrary Kotlin code on the bot.")
-    public void evalCommand(SlashCommandInteractionEvent event0,
-                            @Parameter(description = "The code to run.") String code) {
-        if (!manager.getBot().getConfig().getEval()) {
-            event0.reply("Eval is not enabled.").setEphemeral(true).queue();
+    @SlashHandle(path = "system/eval", description = "Run Kotlin code directly from the bot")
+    public void eval(SlashCommandInteractionEvent event, @Parameter(description = "Code to run", required = false) String code) {
+        if (event.getUser().getIdLong() != context.bot.getConfig().getOwner()) {
+            event.reply("You have insufficient permissions.").queue();
             return;
         }
-
-        if (event0.getUser().getIdLong() != Bot.DEVELOPER_ID) {
-            event0.reply("You have insufficient permissions.").setEphemeral(true).queue();
+    
+        if (code == null) {
+            event.replyModal(manager.getInterfaceManager().getModalManager().buildModal("sys.eval")).queue();
             return;
         }
-
-        long id = COUNTER.incrementAndGet();
-        event0.reply("Are you sure you want to eval this script?").setEphemeral(true).addActionRow(
-                Button.dummy("eval:yes." + id, "Yes, do it", null, ButtonStyle.DANGER, false),
-                Button.dummy("eval:no." + id, "No, cancel", null, ButtonStyle.SECONDARY, false))
-                .queue();
-
-        engine = new ScriptEngineManager().getEngineByExtension("java");
-
-        if (code.contains("SlashCommandInteractionEvent event"))
-            engine.put("event", event0);
-
-        if (code.contains("ApplicationManager manager"))
-            engine.put("manager", manager);
-
-        if (code.contains("GuildContext context"))
-            engine.put("context", context);
-
-        manager.getWaiter().waitForEvent(ButtonInteractionEvent.class,
-                        ev -> ev.getUser().getIdLong() == Bot.DEVELOPER_ID &&
-                                ev.getComponentId().equals(Button.DUMMY_PREFIX + "eval:yes." + id),
-                        1, TimeUnit.MINUTES)
-                .thenAccept(ev -> {
-                    ev.deferEdit().queue();
-                    eval(event0, code);
-                });
-
-        manager.getWaiter().waitForEvent(ButtonInteractionEvent.class,
-                        ev -> ev.getUser().getIdLong() == Bot.DEVELOPER_ID &&
-                                ev.getComponentId().equals(Button.DUMMY_PREFIX + "eval:no." + id),
-                        1, TimeUnit.MINUTES)
-                .thenAccept(ev ->
-                        ev.editMessage("Okay then.").setComponents().queue());
+        
+        createConfirm(event, code);
     }
-
-    private void eval(SlashCommandInteractionEvent event, String script) {
-        long start = System.currentTimeMillis();
-
-        Object out;
+    
+    @ModalHandle(id = "sys.eval", title = "Code evaluation")
+    public void evalModal(ModalInteractionEvent event,
+                          @Element(
+                                  label = "Your code",
+                                  placeholder = "event.user.openPrivateChannel().queue {\n    it.sendMessage(\":)\").queue()\n}",
+                                  style = TextInputStyle.PARAGRAPH) String code) {
+        createConfirm(event, code);
+    }
+    
+    private void createConfirm(IReplyCallback event, String code) {
+        new Confirmation.Builder(
+                String.format("Are you sure you want to run this code?\n```kt\n%s\n%s\n```", IMPORTS, FormatUtils.limitString(code, 500)),
+                event, result -> runCode(result, code))
+                .setOnCancel(result -> result.getEvent().editMessage("Okay then.").queue())
+                .build();
+    }
+    
+    private void runCode(ConfirmationResult result, String code) {
         try {
-            out = engine.eval(script);
+            engine = Objects.requireNonNull(new ScriptEngineManager().getEngineByExtension("kts"));
+        } catch (NullPointerException e) {
+            result.getEvent().getChannel().sendMessageFormat("Whoops, something went wrong. Here is the stacktrace:\n```\n%s```", e).queue();
         }
-        catch (Throwable t) {
-            out = t;
+    
+        engine.put("event", result.getEvent());
+        engine.put("manager", manager);
+        engine.put("ctx", context);
+        
+        Object out;
+        
+        try {
+            out = engine.eval(code);
+        } catch (ScriptException e) {
+            result.getEvent().getChannel().sendMessageFormat("Whoops, your code doesn't work. Here is the exception:\n```\n%s```", e).queue();
+            return;
         }
-
-        long elapsed = System.currentTimeMillis() - start;
-        parseEvalResponse(event, out, elapsed);
-
-        OtherUtils.getLog().info("Took {}ms for evaluating script by user {} ({})",
-                elapsed, event.getUser().getAsTag(), event.getUser().getIdLong());
+        
+        result.getEvent().getChannel().sendMessageFormat("Success! Your code returned `%s`.", out).queue();
     }
 
-    private void parseEvalResponse(SlashCommandInteractionEvent event, Object response, long elapsed) {
-        if (response == null) {
-            event.getHook().editOriginal(String.format("Eval success! **|** Took %sms", elapsed)).setComponents().queue();
-        }
-        else if (response instanceof Throwable thr) {
-            event.getHook().editOriginal(String.format("Eval failed. **|** Took %sms **|** What went wrong: `%s`",
-                    elapsed, thr)).setComponents().queue();
-
-            OtherUtils.getLog().warn("Eval failed", thr);
-        }
-        else if (response instanceof RestAction<?> action) {
-            action.queue(s -> event.getHook().editOriginal(
-                    String.format("Eval success! **|** Took %sms **|** Rest action returned `%s`",
-                            elapsed, s)).setComponents().queue(),
-                    thr -> {
-                        event.getHook().editOriginal(String.format("Eval failed. **|** Took %sms **|** What went wrong: `%s`",
-                                elapsed, thr)).setComponents().queue();
-
-                        OtherUtils.getLog().warn("Eval failed", thr);
-                    });
-        }
-        else {
-            event.getHook().editOriginal(
-                    String.format("Eval success! **|** Took %sms **|** Script returned `%s`",
-                            elapsed, response)).queue();
-        }
-    }
-
-    public static class Factory implements SlashInterfaceFactory<EvalCommand> {
+    public static class Factory implements SlashInterfaceFactory<EvalCommand>, ModalInterfaceFactory<EvalCommand> {
 
         @Override
         public Class<EvalCommand> getControllerClass() {

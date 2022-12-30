@@ -27,6 +27,24 @@ public class FormatUtils {
 
     private FormatUtils() {}
 
+    public static String limitString(String input, int length) {
+        if (input.length() <= length) {
+            return input;
+        }
+        
+        String trimmed = input.substring(0, length);
+        long lines = trimmed.chars().filter(ch -> ch == '\n').count();
+        long allLines = input.chars().filter(ch -> ch == '\n').count();
+        long remLines = allLines - lines;
+        
+        if (remLines <= 0) {
+            return input + "\n// ...";
+        }
+        
+        return String.format("%s\n// And %d more lines...", trimmed, allLines - lines);
+        
+    }
+    
     public static EmbedBuilder embed() {
         return new EmbedBuilder()
                 .setColor(COLOR)
