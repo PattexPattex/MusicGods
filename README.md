@@ -34,6 +34,8 @@ This project heavily depends on the [JDA](https://github.com/DV8FromTheWorld/JDA
     * [Config](#config)
       * [Example config](#example-config)
       * [Notes](#notes)
+    * [Code evaluation](#code-evaluation)
+      * [IntelliJ setup](#intellij-setup)
     * [Runtime flags](#runtime-flags)
     * [Update migrations](#update-migrations)
   * [Submitting an issue](#submitting-an-issue)
@@ -70,9 +72,7 @@ Basically everything that is supported by [Lavaplayer](https://github.com/sedmel
 
 ## Setup
 
-**This bot requires [Java 17](https://adoptium.net/temurin/releases/), along with [ffmpeg](https://ffmpeg.org) and [youtube-dl](https://github.com/ytdl-org/youtube-dl) (available in the PATH).**
-
-FFMpeg and youtube-dl are bundled with the bot, but they work only on Windows.
+**This bot requires [Java 17](https://adoptium.net/temurin/releases/), along with [ffmpeg](https://ffmpeg.org/download.html) and [youtube-dl](http://ytdl-org.github.io/youtube-dl/download.html) (in the working directory or the PATH).**
 
 ### Download
 
@@ -83,6 +83,10 @@ Then just start the jar in the command line: `java -jar MusicGods-X.X.X.jar` (re
 Example of what the output should look on normal startup:
 ```
 > java -jar MusicGods-X.X.X.jar
+[18:32:18.048] [main] [com.pattexpattex.musicgods.Launcher] [INFO] - Using flags ''
+[18:32:18.060] [main] [com.pattexpattex.musicgods.Launcher] [INFO] - Found ffmpeg in filesystem...
+[18:32:18.064] [main] [com.pattexpattex.musicgods.Launcher] [INFO] - Found youtube-dl in filesystem...
+
  __  __           _       _____           _
 |  \/  |         (_)     / ____|         | |
 | \  / |_   _ ___ _  ___| |  __  ___   __| |___
@@ -93,9 +97,6 @@ Example of what the output should look on normal startup:
   (https://github.com/PattexPattex/MusicGods)
 
 [18:32:18.046] [main] [com.pattexpattex.musicgods.Bot] [INFO] - Starting MusicGods...
-[18:32:18.048] [main] [com.pattexpattex.musicgods.Bot] [INFO] - Using flags ''
-[18:32:18.060] [main] [com.pattexpattex.musicgods.Bot] [INFO] - Found ffmpeg in filesystem...
-[18:32:18.064] [main] [com.pattexpattex.musicgods.Bot] [INFO] - Found youtube-dl in filesystem...
 [18:32:18.071] [main] [c.p.musicgods.config.Config] [INFO] - Successfully read config from 'config.json'...
 [18:32:19.300] [main] [net.dv8tion.jda.api.JDA] [INFO] - Login Successful!
 [18:32:19.688] [JDA MainWS-ReadThread] [n.d.j.i.requests.WebSocketClient] [INFO] - Connected to WebSocket
@@ -153,6 +154,53 @@ You can compare it with the [default](https://github.com/PattexPattex/MusicGods/
 
 **Warning: Leave `eval` set to `false` if you don't know what you are doing. This is used purely for debugging. If someone wants you to enable this, there is an 11/10 chance they are trying to scam you.**
 
+### Code evaluation
+
+The bot can compile & run Kotlin DSL code at runtime with the `/system eval` command. You can access the majority of the bot's library via the supplied variables:
+- `manager` - [`ApplicationManager`](https://github.com/PattexPattex/MusicGods/blob/master/src/main/java/com/pattexpattex/musicgods/ApplicationManager.java#L54)
+- `ctx` - [`GuildContext`](https://github.com/PattexPattex/MusicGods/blob/master/src/main/java/com/pattexpattex/musicgods/GuildContext.java#L9)
+- `event` - [`ButtonInteractionEvent`](https://ci.dv8tion.net/job/JDA5/javadoc/net/dv8tion/jda/api/events/interaction/component/ButtonInteractionEvent.html)
+
+#### IntelliJ setup
+
+For easier scripting, you can create Kotlin scripts in IntelliJ.
+
+1. Clone this project and open it in IntelliJ.
+2. Go to `File > New > Scratch File` or press `Ctrl + Alt + Shift + Insert`.
+3. As the language, select `Kotlin` and hit `Enter`.
+4. At the top of the editor, select `MusicGods.main` in the `Use classpath of module` dropdown menu.
+5. Add these lines to the scratch file:
+
+```kotlin
+import com.pattexpattex.musicgods.ApplicationManager
+import com.pattexpattex.musicgods.GuildContext
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
+        
+val event: ButtonInteractionEvent = TODO()
+val manager: ApplicationManager = TODO()
+val ctx: GuildContext = TODO()
+
+/* Your code goes here */
+```
+
+And that's it!
+
+To run the code, use the `/system eval` command. 
+If the `code` option is left empty, a modal will popup with a bigger text input field.
+
+Make sure to include any additional imports as they are not added automatically.
+
+Upon successful evaluation, the bot will print the value returned by the script, e. g.:
+- `2+2` returns `4`
+- `println("Hello eval!")` returns `null` as the [return type of `println()` is `Unit`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.io/println.html).
+
+Example that sends you a DM:
+```kotlin
+event.user.openPrivateChannel().queue {
+	it.sendMessage("Hello DMs!").queue()
+}
+```
+
 ### Runtime flags
 
 Runtime flags are used as arguments for the bot.
@@ -161,10 +209,11 @@ Usage: `java -jar MusicGods-X.X.X.jar [FLAGS]`
 
 List of flags: 
 
-| Long       | Short | Description                                               |
-|------------|-------|-----------------------------------------------------------|
-| `--lazy`   | `-l`  | Do not update slash commands on startup                   |
-| `--update` | `-up` | Perform update migrations (if there are any) and shutdown |
+| Long        | Short | Description                                               |
+|-------------|-------|-----------------------------------------------------------|
+| `--lazy`    | `-l`  | Do not update slash commands on startup                   |
+| `--update`  | `-up` | Perform update migrations (if there are any) and shutdown |
+| `--verbose` | `-v`  | Set log level to ALL                                      |
 
 ### Update migrations
 
@@ -173,6 +222,10 @@ such as updating the config structure, delete some files or something else. This
 
 ```
 > java -jar MusicGods-X.X.X.jar -up
+[18:28:43.628] [main] [com.pattexpattex.musicgods.Launcher] [INFO] - Using flags 'update'
+[18:28:43.638] [main] [com.pattexpattex.musicgods.Launcher] [INFO] - Found ffmpeg...
+[18:28:43.642] [main] [com.pattexpattex.musicgods.Launcher] [INFO] - Found youtube-dl...
+
  __  __           _       _____           _
 |  \/  |         (_)     / ____|         | |
 | \  / |_   _ ___ _  ___| |  __  ___   __| |___
@@ -183,9 +236,6 @@ such as updating the config structure, delete some files or something else. This
   (https://github.com/PattexPattex/MusicGods)
 
 [18:28:43.624] [main] [com.pattexpattex.musicgods.Bot] [INFO] - Starting MusicGods...
-[18:28:43.628] [main] [com.pattexpattex.musicgods.Bot] [INFO] - Using flags 'update'
-[18:28:43.638] [main] [com.pattexpattex.musicgods.Bot] [INFO] - Found ffmpeg in filesystem...
-[18:28:43.642] [main] [com.pattexpattex.musicgods.Bot] [INFO] - Found youtube-dl in filesystem...
 [18:28:43.650] [main] [c.p.musicgods.config.Config] [INFO] - Successfully read config from 'config.json'...
 [18:28:44.881] [main] [net.dv8tion.jda.api.JDA] [INFO] - Login Successful!
 [18:28:45.229] [JDA MainWS-ReadThread] [n.d.j.i.requests.WebSocketClient] [INFO] - Connected to WebSocket
