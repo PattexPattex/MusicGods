@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 public class LyricsManager {
     
@@ -70,7 +71,7 @@ public class LyricsManager {
         sb.append(String.format("**%s** by **%s** - <%s>\n\n", lyrics.getTitle(), lyrics.getAuthor(), lyrics.getURL()));
 
         for (String st : content.split("\\n")) {
-            sb.append(">").append(st).append("\n");
+            sb.append("> ").append(st).append("\n");
         }
         
         sb.append(String.format("\n_Provided by %s._", provider));
@@ -78,7 +79,7 @@ public class LyricsManager {
         return SplitUtil.split(sb.toString(), 2000, true, SplitUtil.Strategy.NEWLINE, SplitUtil.Strategy.WHITESPACE)
                 .stream()
                 .map(str -> new MessageEditBuilder().setContent(str).build())
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public String buildSearchQuery(AudioTrack track) {

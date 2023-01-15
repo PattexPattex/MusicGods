@@ -30,7 +30,7 @@ dependencies {
     implementation 'ch.qos.logback:logback-classic:1.4.5' //Logging
     implementation 'org.json:json:20220924' //org.json for config
 
-    implementation('com.sedmelluq:jda-nas:1.1.0') { //Native audio send UDP queue
+    implementation ('com.sedmelluq:jda-nas:1.1.0') { //Native UDP queue
         exclude module: 'udp-queue'
     }
     implementation "club.minnced:udpqueue-native-linux-x86-64:0.2.6"
@@ -42,16 +42,14 @@ dependencies {
     implementation "club.minnced:udpqueue-native-darwin:0.2.6"
 
     implementation 'com.github.walkyst:lavaplayer-fork:1.3.99.2' //Lavaplayer
-    implementation 'com.github.natanbc:lavadsp:0.7.7'
-    implementation 'com.github.natanbc:native-loader:0.7.0'
+    implementation 'com.github.natanbc:lavadsp:0.7.7' // Lavadsp
+    implementation 'com.github.natanbc:native-loader:0.7.0' // Native library loader
     implementation 'se.michaelthelin.spotify:spotify-web-api-java:7.3.0' //Spotify web API wrapper
-    implementation 'com.jagrosh:JLyrics:0.6' //JLyrics
-    implementation 'com.typesafe:config:1.4.2' //Typesafe (dependency of JLyrics)
-    implementation 'org.jsoup:jsoup:1.15.3'
-    implementation 'com.sapher:youtubedl:1.1' //YoutubeDL wrapper
+    implementation 'com.github.PattexPattex:JLyrics:fix-newline-SNAPSHOT' //JLyrics
+    implementation 'com.github.sapher:youtubedl-java:master-SNAPSHOT' //YoutubeDL
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0' //Junit
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2' //Junit
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
 
     compileOnly 'com.google.code.findbugs:jsr305:3.0.2' // javax.annotations
     runtimeOnly 'org.jetbrains.kotlin:kotlin-scripting-jsr223:1.8.0' // Kotlin DSL
