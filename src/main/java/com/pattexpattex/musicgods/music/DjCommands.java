@@ -8,6 +8,7 @@ import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Choice;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Parameter;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Range;
+import com.pattexpattex.musicgods.interfaces.slash.objects.SlashEndpoint;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterface;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterfaceFactory;
 import com.pattexpattex.musicgods.music.audio.ShuffleMode;
@@ -126,6 +127,15 @@ public class DjCommands implements SlashInterface {
             
             kvintakord.updateQueueMessage();
         }, String.format("Remove a track at position %d?", position), event);
+    }
+    
+    @SlashHandle(path = "clear", description = "Clears the queue.")
+    public void clear(SlashCommandInteractionEvent event) {
+        checkManager.fairCheck(() -> {
+            kvintakord.getScheduler().emptyQueue();
+            event.getHook().editOriginal("Cleared the queue.").queue();
+            kvintakord.updateQueueMessage();
+        }, "Clear the queue?", event);
     }
     
     @SlashHandle(path = "stop", description = "Stops playback, clears the queue and leaves the voice channel.")
