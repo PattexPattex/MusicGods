@@ -79,7 +79,7 @@ public class QueueBoxBuilder {
 
     private static String buildFirstLine(AudioTrack track) {
         if (!track.isSeekable())
-            return BotEmoji.RED_CIRCLE + " LIVE";
+            return "**`              " + BotEmoji.RED_CIRCLE + " LIVE              `**\n ";
 
         long position = track.getPosition();
         long duration = track.getDuration();
