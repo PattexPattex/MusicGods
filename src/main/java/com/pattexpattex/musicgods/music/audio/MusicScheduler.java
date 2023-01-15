@@ -54,14 +54,14 @@ public class MusicScheduler extends AudioEventAdapter {
         queue.addLast(track);
         startNext(true);
     }
-
-    public void addToQueueFirst(AudioTrack track) {
-        queue.addFirst(track);
+    
+    public void addToQueue(Collection<AudioTrack> tracks) {
+        queue.addAll(tracks);
         startNext(true);
     }
 
-    public void addToQueue(Collection<AudioTrack> tracks) {
-        queue.addAll(tracks);
+    public void addToQueueFirst(AudioTrack track) {
+        queue.addFirst(track);
         startNext(true);
     }
 

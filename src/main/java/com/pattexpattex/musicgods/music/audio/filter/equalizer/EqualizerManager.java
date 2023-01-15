@@ -150,22 +150,22 @@ public class EqualizerManager implements ButtonInterface {
         }, event, true);
     }
     
-    public void setMessage(InteractionHook hook) {
-        message.set(hook);
-    }
-    
     public void destroyMessage() {
         OtherUtils.deleteHook(message.getAndSet(null));
     }
     
-    public void updateMessage() {
-        updateMessage(null);
+    public void setMessage(InteractionHook hook) {
+        message.set(hook);
     }
     
     public void setAndUpdate(InteractionHook hook) {
         setMessage(hook);
         updateMessage();
         timer.reset();
+    }
+    
+    public void updateMessage() {
+        updateMessage(null);
     }
     
     public void updateMessage(InteractionHook hook) {

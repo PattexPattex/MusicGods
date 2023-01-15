@@ -59,8 +59,9 @@ public class SlashDataBuilder {
     private static void buildOptions(OptionData[] arr, Method method) {
         var parameters = method.getParameters();
 
-        if (arr.length > 25)
+        if (arr.length > 25) {
             throw new IndexOutOfBoundsException("A command cannot have more than 25 parameters");
+        }
 
         for (int i = 1; i < parameters.length; i++) {
             var par = parameters[i];
@@ -73,51 +74,73 @@ public class SlashDataBuilder {
             ParameterType type = ParameterType.ofClass(par.getType());
             String name = par.getName();
             String description = DEFAULT_DESCRIPTION;
-            if (parameter != null && !parameter.name().isBlank()) name = parameter.name();
-            if (parameter != null && !parameter.description().isBlank()) description = parameter.description();
+            
+            if (parameter != null && !parameter.name().isBlank()) {
+                name = parameter.name();
+            }
+            if (parameter != null && !parameter.description().isBlank()) {
+                description = parameter.description();
+            }
 
             OptionData optionData = new OptionData(type.getOptionType(), name, description);
             
-            if (parameter != null)
+            if (parameter != null) {
                 optionData.setRequired(parameter.required());
-            else
+            }
+            else {
                 optionData.setRequired(true);
+            }
 
             if (choice != null && choice.choices().length > 0) {
-                String[] keys = choice.choices();
-                String[] values = choice.values();
-
-                if (values.length > 0 && keys.length != values.length)
-                    throw new IllegalArgumentException(String.format("Choices for parameter %s are not the same length", name));
-
-                if (values.length == 0)
-                    for (String key : keys)
-                        optionData.addChoice(key, key);
-                else
-                    for (int j = 0; j < keys.length; j++)
-                        optionData.addChoice(keys[j], values[j]);
+                setChoices(optionData, choice, name);
             }
-            else if (autocomplete != null && optionData.getType().canSupportChoices())
+            else if (autocomplete != null && optionData.getType().canSupportChoices()) {
                 optionData.setAutoComplete(true);
-            
-            if (range != null && optionData.getType() != OptionType.NUMBER && optionData.getType() != OptionType.INTEGER) {
-                throw new IllegalArgumentException(String.format("Incompatible types, parameter %s (%s) is annotated with %s",
-                        name, par.getType().getSimpleName(), range.getClass().getSimpleName()));
-            }
-            else if (range != null && (optionData.getType() == OptionType.NUMBER || optionData.getType() == OptionType.INTEGER)) {
-                optionData.setRequiredRange((long) setInRange(range.min()), (long) setInRange(range.max()));
-            }
-            else if (range != null) {
-                optionData.setRequiredRange(setInRange(range.min()), setInRange(range.max()));
             }
             
-            if (optionData.getType() == OptionType.CHANNEL)
-                optionData.setChannelTypes(type.getChannelTypes());
+            setOptionType(optionData, range, name, par, type);
 
             arr[i - 1] = optionData;
         }
     }
 
+    private static void setOptionType(OptionData optionData, Range range, String name, java.lang.reflect.Parameter par, ParameterType type) {
+        if (range != null && optionData.getType() != OptionType.NUMBER && optionData.getType() != OptionType.INTEGER) {
+            throw new IllegalArgumentException(String.format("Incompatible types, parameter %s (%s) is annotated with %s",
+                    name, par.getType().getSimpleName(), range.getClass().getSimpleName()));
+        }
+        else if (range != null && (optionData.getType() == OptionType.NUMBER || optionData.getType() == OptionType.INTEGER)) {
+            optionData.setRequiredRange((long) setInRange(range.min()), (long) setInRange(range.max()));
+        }
+        else if (range != null) {
+            optionData.setRequiredRange(setInRange(range.min()), setInRange(range.max()));
+        }
+    
+        if (optionData.getType() == OptionType.CHANNEL) {
+            optionData.setChannelTypes(type.getChannelTypes());
+        }
+    }
+
+    private static void setChoices(OptionData optionData, Choice choice, String name) {
+        String[] keys = choice.choices();
+        String[] values = choice.values();
+    
+        if (values.length > 0 && keys.length != values.length) {
+            throw new IllegalArgumentException(String.format("Choices for parameter %s are not the same length", name));
+        }
+    
+        if (values.length == 0) {
+            for (String key : keys) {
+                optionData.addChoice(key, key);
+            }
+        }
+        else {
+            for (int j = 0; j < keys.length; j++) {
+                optionData.addChoice(keys[j], values[j]);
+            }
+        }
+    }
+    
     private static double setInRange(double d) {
         return Math.min(OptionData.MAX_POSITIVE_NUMBER, Math.max(d, OptionData.MIN_NEGATIVE_NUMBER));
     }
