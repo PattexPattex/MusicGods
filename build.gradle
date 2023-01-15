@@ -19,10 +19,6 @@ repositories {
     maven { url 'https://jitpack.io' }
     maven { url 'https://m2.chew.pro/snapshots' }
     maven { url 'https://m2.dv8tion.net/releases' }
-
-    flatDir {
-        dirs 'lib'
-    }
 }
 
 dependencies {
