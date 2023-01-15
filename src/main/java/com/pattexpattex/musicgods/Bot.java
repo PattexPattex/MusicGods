@@ -33,7 +33,7 @@ public class Bot {
     private final ApplicationManager applicationManager;
 
     Bot() {
-        System.out.println(String.format(Launcher.startup, Launcher.version, Launcher.github));
+        System.out.printf((Launcher.startup) + "%n", Launcher.version, Launcher.github);
 
         log.info("Starting MusicGods...");
 

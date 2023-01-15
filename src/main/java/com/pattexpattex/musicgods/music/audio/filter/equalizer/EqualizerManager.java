@@ -1,7 +1,6 @@
 package com.pattexpattex.musicgods.music.audio.filter.equalizer;
 
 import com.pattexpattex.musicgods.ApplicationManager;
-import com.pattexpattex.musicgods.Bot;
 import com.pattexpattex.musicgods.GuildContext;
 import com.pattexpattex.musicgods.Launcher;
 import com.pattexpattex.musicgods.annotations.button.ButtonHandle;

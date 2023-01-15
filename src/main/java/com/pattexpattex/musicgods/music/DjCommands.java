@@ -8,7 +8,6 @@ import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Choice;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Parameter;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Range;
-import com.pattexpattex.musicgods.interfaces.slash.objects.SlashEndpoint;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterface;
 import com.pattexpattex.musicgods.interfaces.slash.objects.SlashInterfaceFactory;
 import com.pattexpattex.musicgods.music.audio.ShuffleMode;
