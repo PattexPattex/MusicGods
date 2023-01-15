@@ -122,7 +122,7 @@ public class EqualizerManager implements ButtonInterface {
             equalizer.reset();
             setAndUpdate(event.getHook());
             manager.updateFilters();
-        }, event, false);
+        }, event, true);
     }
     
     @ButtonHandle(identifier = "kv:filters.equalizer:destroy", label = "End interaction", style = ButtonStyle.DANGER)
