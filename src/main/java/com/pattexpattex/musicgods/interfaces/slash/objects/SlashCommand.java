@@ -6,6 +6,7 @@ import com.pattexpattex.musicgods.annotations.slash.SlashHandle;
 import com.pattexpattex.musicgods.interfaces.slash.SlashDataBuilder;
 import com.pattexpattex.musicgods.interfaces.slash.SlashInterfaceManager;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import net.dv8tion.jda.internal.interactions.CommandDataImpl;
 import org.jetbrains.annotations.NotNull;
@@ -21,11 +22,11 @@ public class SlashCommand {
 
     private final String name;
     private final SlashGroup group;
-    private final SlashCommand.Data data;
+    private final SlashCommandData data;
     private final Map<String, SlashEndpoint> endpoints;
     private final Permission[] permissions;
 
-    private SlashCommand(SlashCommand.Data data, SlashGroup group, Permission[] permissions) {
+    private SlashCommand(SlashCommandData data, SlashGroup group, Permission[] permissions) {
         this.name = data.getName();
         this.data = data;
         this.group = group;
@@ -39,7 +40,7 @@ public class SlashCommand {
         return name;
     }
 
-    public SlashCommand.Data getData() {
+    public SlashCommandData getData() {
         return data;
     }
 
@@ -95,31 +96,8 @@ public class SlashCommand {
     private static SlashCommand create(SlashPath path, SlashInterfaceManager manager,
                                        Grouped grouped, Permissions permissions) {
         return new SlashCommand(
-                (Data) SlashDataBuilder.buildEmpty(path).setGuildOnly(true),
+                SlashDataBuilder.buildEmpty(path).setGuildOnly(true),
                 manager.getGroupManager().getGroup(grouped),
                 (permissions == null ? Permission.EMPTY_PERMISSIONS : permissions.command()));
-    }
-
-    /*
-    * JDA didn't implement a way to remove subcommand groups...
-    * */
-    public static class Data extends CommandDataImpl {
-
-        public Data(@NotNull String name, @NotNull String description) {
-            super(name, description);
-            setGuildOnly(true);
-        }
-
-        public void mergeSubcommandGroup(SubcommandGroupData data) {
-            for (SubcommandGroupData existing : getSubcommandGroups()) {
-                if (existing.getName().equals(data.getName())) {
-                    options.remove(existing.toData().toMap());
-                    data.addSubcommands(existing.getSubcommands());
-                    break;
-                }
-            }
-
-            addSubcommandGroups(data);
-        }
     }
 }

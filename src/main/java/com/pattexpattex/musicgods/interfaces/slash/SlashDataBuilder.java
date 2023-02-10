@@ -12,10 +12,7 @@ import com.pattexpattex.musicgods.interfaces.slash.objects.SlashPath;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
+import net.dv8tion.jda.api.interactions.commands.build.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
@@ -26,7 +23,7 @@ public class SlashDataBuilder {
 
     public static void addEndpoint(Method method, SlashHandle handle, SlashCommand command) {
         SlashPath path = new SlashPath(handle.path());
-        SlashCommand.Data data = command.getData();
+        SlashCommandData data = command.getData();
 
         if (!handle.baseDescription().equals(DEFAULT_DESCRIPTION))
             data.setDescription(handle.baseDescription());
@@ -42,7 +39,18 @@ public class SlashDataBuilder {
 
             buildSubcommand(subData, method);
             subGroupData.addSubcommands(subData);
-            data.mergeSubcommandGroup(subGroupData);
+            
+            SubcommandGroupData oldSubGroupData = data.getSubcommandGroups()
+                    .stream()
+                    .filter(d -> d.getName().equals(subGroupData.getName()))
+                    .findFirst()
+                    .orElse(null);
+            
+            if (oldSubGroupData != null) {
+                subGroupData.addSubcommands(oldSubGroupData.getSubcommands());
+                data.removeSubcommandGroupByName(oldSubGroupData.getName());
+                data.addSubcommandGroups(subGroupData);
+            }
         }
         else {
             buildCommand(data, method);
@@ -52,8 +60,9 @@ public class SlashDataBuilder {
         buildPermissions(data, method);
     }
 
-    public static SlashCommand.Data buildEmpty(SlashPath path) {
-        return new SlashCommand.Data(path.getBase(), DEFAULT_DESCRIPTION);
+    public static SlashCommandData buildEmpty(SlashPath path) {
+        return Commands.slash(path.getBase(), DEFAULT_DESCRIPTION);
+        //return new SlashCommand.Data(path.getBase(), DEFAULT_DESCRIPTION);
     }
 
     private static void buildOptions(OptionData[] arr, Method method) {
