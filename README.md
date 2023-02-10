@@ -72,7 +72,8 @@ Basically everything that is supported by [Lavaplayer](https://github.com/sedmel
 
 ## Setup
 
-**This bot requires [Java 17](https://adoptium.net/temurin/releases/), along with [ffmpeg](https://ffmpeg.org/download.html) and [youtube-dl](http://ytdl-org.github.io/youtube-dl/download.html) (in the working directory or the PATH).**
+**This bot requires [Java 17](https://adoptium.net/temurin/releases/), along with [ffmpeg](https://ffmpeg.org/download.html) 
+and [youtube-dl](http://ytdl-org.github.io/youtube-dl/download.html) (in the working directory or the PATH).**
 
 ### Download
 
@@ -139,7 +140,7 @@ You can compare it with the [default](https://github.com/PattexPattex/MusicGods/
       "secret": "..." // Spotify application secret
     },
 
-    "lyrics": "MusixMatch", // A lyrics provider, can be one of MusixMatch/Genius/LyricsFreak
+    "lyrics": "MusixMatch", // A lyrics provider, can be one of MusixMatch/A-Z Lyrics/Genius/LyricsFreak
     "alone": 300 // Time in seconds before the bot leaves a voice channel due to inactivity
   }
 }
@@ -150,9 +151,16 @@ You can compare it with the [default](https://github.com/PattexPattex/MusicGods/
 - [How to get your user snowflake ID](https://jmusicbot.com/finding-your-user-id/)
 - [How to create a Spotify application](https://developer.spotify.com/documentation/general/guides/authorization/app-settings/)
 - The Spotify application ID/secret can be `null`, but support for playing music from Spotify will be disabled in that case.
-- Lyrics are currently broken, so setting a provider has no effect.
 
-**Warning: Leave `eval` set to `false` if you don't know what you are doing. This is used purely for debugging. If someone wants you to enable this, there is an 11/10 chance they are trying to scam you.**
+**Warning: Leave `eval` set to `false` if you don't know what you are doing. This is used purely for debugging. 
+If someone wants you to enable this, there is an 11/10 chance they are trying to scam you.**
+
+### Lyrics
+
+Possible lyrics providers are **MusixMatch**, **A-Z Lyrics**, **Genius** and **LyricsFreak**.
+I recommend MusixMatch since its results are the most accurate, but the search is sometimes inconsistent (probably their scraping protection). 
+If you experience any issues, try searching for some lyrics in your browser a fey times (works if the bot is hosted on the same network). 
+If the issues persist, change the provider to A-Z Lyrics and try switching it back after a couple of weeks.
 
 ### Code evaluation
 
