@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'application'
+    id 'maven-publish'
     id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
@@ -8,9 +9,7 @@ group 'com.pattexpattex'
 version '0.2.4'
 
 String mainClass = 'com.pattexpattex.musicgods.Launcher'
-
-sourceCompatibility = 17
-targetCompatibility = 17
+int javaVersion = 17
 
 repositories {
     mavenCentral()
@@ -51,6 +50,12 @@ dependencies {
     runtimeOnly 'org.jetbrains.kotlin:kotlin-scripting-jsr223:1.8.0' // Kotlin DSL
 }
 
+publishing.publications {
+    maven(MavenPublication) {
+        from components.java
+    }
+}
+
 jar.manifest.attributes(
         'Main-Class': mainClass,
         'Implementation-Version': project.version,
@@ -59,15 +64,12 @@ jar.manifest.attributes(
 )
 
 application.mainClass.set(mainClass)
+compileJava.options.compilerArgs << '-parameters'
 shadowJar.archiveFileName = "${project.name}-${project.version}.jar"
 
 javadoc.options.encoding('utf-8')
 compileJava.options.encoding('utf-8')
 compileTestJava.options.encoding('utf-8')
-
-compileJava.options.compilerArgs << '-parameters'
-
-test.useJUnitPlatform()
 
 distTar.dependsOn(shadowJar)
 distZip.dependsOn(shadowJar)
@@ -75,3 +77,7 @@ startScripts.dependsOn(shadowJar)
 startShadowScripts.dependsOn(jar)
 shadowDistTar.dependsOn(jar)
 shadowDistZip.dependsOn(jar)
+
+test.useJUnitPlatform()
+
+java.toolchain.languageVersion.set(JavaLanguageVersion.of(javaVersion))
