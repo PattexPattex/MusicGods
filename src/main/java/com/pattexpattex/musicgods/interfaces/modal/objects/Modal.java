@@ -5,6 +5,7 @@ import com.pattexpattex.musicgods.annotations.modal.ModalHandle;
 import com.pattexpattex.musicgods.annotations.slash.parameter.Range;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.LayoutComponent;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.internal.interactions.modal.ModalImpl;
@@ -44,7 +45,7 @@ public class Modal {
     }
     
     public net.dv8tion.jda.api.interactions.modals.Modal build() {
-        return new ModalImpl(metadata.id, metadata.title, metadata.actionRows);
+        return new ModalImpl(metadata.id, metadata.title, metadata.actionRows.stream().map(LayoutComponent.class::cast).toList());
     }
     
     public static Modal of(Class<? extends ModalInterface> controller,

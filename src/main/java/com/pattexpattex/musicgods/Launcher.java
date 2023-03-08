@@ -24,7 +24,6 @@ public class Launcher {
 	public static final String donation = "https://ko-fi.com/pattexpattex";
 	private static final List<RuntimeFlags.Flags> flags = new ArrayList<>();
 	private static final Logger log = OtherUtils.getLog();
-	static final String updateMsg = "There is a new version of MusicGods available!\nCurrent: `%s` **|** Latest: `%s`\nGrab it here: %s/releases/latest";
 	static final String startup = """
  
  __  __           _       _____           _
@@ -45,10 +44,7 @@ public class Launcher {
 	 * This {@link Consumer} is executed when the {@code -up} flag is applied. To disable, set to {@code null}.
 	 */
 	@Nullable
-	public static final Consumer<ReadyEvent> migrationConsumer = event -> {
-		log.info("Migrating commands in {} out of {} guilds ({} unavailable)", event.getGuildAvailableCount(), event.getGuildTotalCount(), event.getGuildUnavailableCount());
-		event.getJDA().getGuilds().stream().map(Guild::updateCommands).forEach(RestAction::queue);
-	};
+	public static final Consumer<ReadyEvent> migrationConsumer = null;
 	
 	private static int libs = 0;
 	private static Bot instance;
