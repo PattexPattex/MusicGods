@@ -149,7 +149,7 @@ You can compare it with the [default](https://github.com/PattexPattex/MusicGods/
 #### Notes
 - If you are struggling at creating a bot, check [this guide](https://github.com/DV8FromTheWorld/JDA/wiki/3%29-Getting-Started#creating-a-discord-bot).
 - [How to get your user snowflake ID](https://jmusicbot.com/finding-your-user-id/)
-- [How to create a Spotify application](https://developer.spotify.com/documentation/general/guides/authorization/app-settings/)
+- [How to create a Spotify application](https://developer.spotify.com/documentation/web-api/concepts/apps)
 - The Spotify application ID/secret can be `null`, but support for playing music from Spotify will be disabled in that case.
 
 **Warning: Leave `eval` set to `false` if you don't know what you are doing. This is used purely for debugging. 
