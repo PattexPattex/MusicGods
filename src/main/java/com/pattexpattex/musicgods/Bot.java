@@ -32,13 +32,13 @@ public class Bot {
     private final GuildConfigManager guildConfig;
     private final ApplicationManager applicationManager;
 
-    Bot() {
+    Bot(Config config) {
         System.out.printf((Launcher.startup) + "%n", Launcher.version, Launcher.github);
 
         log.info("Starting MusicGods...");
 
         random = new Random();
-        config = new Config();
+        this.config = config;
         guildConfig = new GuildConfigManager(this);
         applicationManager = new ApplicationManager(this);
         applicationManager.cleanTemp();

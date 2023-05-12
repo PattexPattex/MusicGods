@@ -1,12 +1,10 @@
 package com.pattexpattex.musicgods;
 
 import ch.qos.logback.classic.Level;
-import ch.qos.logback.core.ConsoleAppender;
+import com.pattexpattex.musicgods.config.Config;
 import com.pattexpattex.musicgods.util.OtherUtils;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
-import net.dv8tion.jda.api.requests.RestAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,9 +58,11 @@ public class Launcher {
 		if (RuntimeFlags.Flags.VERBOSE.isActive()) {
 			((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.ALL);
 		}
-		
+
+		Config config = new Config();
+
 		checkFfmpeg();
-		checkYTDL();
+		checkYTDL(config.getYoutubedlPath());
 		
 		if (!(isFfmpeg() && isYTDL())) {
 			log.info("""
@@ -71,8 +71,8 @@ public class Launcher {
                       - youtube-dl (http://ytdl-org.github.io/youtube-dl/download.html)
                     and place the executables in the bot's working directory.""");
 		}
-		
-		instance = new Bot();
+
+		instance = new Bot(config);
 	}
 	
 	public static Bot getInstance() {
@@ -111,11 +111,11 @@ public class Launcher {
 		libs += (result ? 1 : 0);
 	}
 	
-	private static void checkYTDL() {
+	private static void checkYTDL(String path) {
 		boolean result;
 		
 		try {
-			Runtime.getRuntime().exec("youtube-dl -h");
+			Runtime.getRuntime().exec(String.format("%s -h", path));
 			log.info("Found youtube-dl...");
 			result = true;
 		}
