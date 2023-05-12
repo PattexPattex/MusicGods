@@ -41,6 +41,7 @@ public class TrackDownloader {
         if (!Launcher.isFfmpeg() || !Launcher.isYTDL()) {
             DISABLED.set(true);
         }
+        YoutubeDL.setExecutablePath(Launcher.getInstance().getConfig().getYoutubedlPath());
     }
 
     private final long id;

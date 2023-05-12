@@ -144,6 +144,10 @@ public class Config {
         return config.getJSONObject("music").getInt("alone");
     }
 
+    public String getYoutubedlPath() {
+        return config.getJSONObject("music").getString("ytdl");
+    }
+
 
     /* ---- Private methods ---- */
 

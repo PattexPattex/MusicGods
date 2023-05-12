@@ -23,6 +23,7 @@
     },
 
     "lyrics": "MusixMatch",
-    "alone": 300
+    "alone": 300,
+    "ytdl": "youtube-dl"
   }
 }
