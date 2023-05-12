@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'com.pattexpattex'
-version '0.2.6'
+version '0.2.7'
 
 String mainClass = 'com.pattexpattex.musicgods.Launcher'
 int javaVersion = 17
