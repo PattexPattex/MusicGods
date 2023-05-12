@@ -65,7 +65,7 @@ public class TrackDownloader {
             hook.editOriginal("Starting download, this may take a while...").queue();
 
             YoutubeDLRequest request = new YoutubeDLRequest(url);
-            request.setOption("max-filesize", "8m");
+            request.setOption("max-filesize", "25m");
             request.setOption("output", buildOutputLocation(id));
             request.setOption("audio-format", "mp3");
             request.setOption("extract-audio");
