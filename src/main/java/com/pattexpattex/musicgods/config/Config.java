@@ -26,6 +26,7 @@ public class Config {
     public Config() {
         this.refConfig = new JSONObject(Objects.requireNonNull(OtherUtils.loadResource(Config.class, "/assets/ref-config.json")));
         this.config = readConfig();
+        checkConfigIntegrity();
     }
 
 
@@ -174,6 +175,31 @@ public class Config {
 
         log.info("Successfully read config from '{}'...", PATH);
         return obj;
+    }
+
+    private void checkConfigIntegrity() {
+        checkObjectIntegrity(config, refConfig);
+        try {
+            Files.write(OtherUtils.getPath(PATH), config.toString(4).getBytes());
+        } catch (IOException e) {
+            log.error("Failed writing to config '{}'", PATH, e);
+        }
+    }
+
+    private void checkObjectIntegrity(JSONObject json, JSONObject reference) {
+        for (String key : reference.keySet()) {
+            Object refObj = reference.get(key);
+            Object obj = json.opt(key);
+
+            if (obj == null) {
+                json.put(key, refObj);
+                brokenValue(key);
+            }
+
+            if (refObj instanceof JSONObject) {
+                checkObjectIntegrity((JSONObject) obj, (JSONObject) refObj);
+            }
+        }
     }
 
     private static void brokenValue(String path) {
