@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'com.pattexpattex'
-version '0.2.7'
+version '0.2.8'
 
 String mainClass = 'com.pattexpattex.musicgods.Launcher'
 int javaVersion = 17
@@ -21,22 +21,22 @@ repositories {
 }
 
 dependencies {
-    implementation 'net.dv8tion:JDA:5.0.0-beta.9' //JDA
-    implementation 'ch.qos.logback:logback-classic:1.4.7' //Logging
-    implementation 'org.json:json:20230227' //org.json for config
+    implementation 'net.dv8tion:JDA:5.0.0-beta.13' //JDA
+    implementation 'ch.qos.logback:logback-classic:1.4.11' //Logging
+    implementation 'org.json:json:20230618' //org.json for config
 
     implementation ('com.sedmelluq:jda-nas:1.1.0') { //Native UDP queue
         exclude module: 'udp-queue'
     }
-    implementation "club.minnced:udpqueue-native-linux-x86-64:0.2.6"
-    implementation "club.minnced:udpqueue-native-linux-x86:0.2.6"
-    implementation "club.minnced:udpqueue-native-linux-aarch64:0.2.6"
-    implementation "club.minnced:udpqueue-native-linux-arm:0.2.6"
-    implementation "club.minnced:udpqueue-native-win-x86-64:0.2.6"
-    implementation "club.minnced:udpqueue-native-win-x86:0.2.6"
-    implementation "club.minnced:udpqueue-native-darwin:0.2.6"
+    implementation "club.minnced:udpqueue-native-linux-x86-64:0.2.7"
+    implementation "club.minnced:udpqueue-native-linux-x86:0.2.7"
+    implementation "club.minnced:udpqueue-native-linux-aarch64:0.2.7"
+    implementation "club.minnced:udpqueue-native-linux-arm:0.2.7"
+    implementation "club.minnced:udpqueue-native-win-x86-64:0.2.7"
+    implementation "club.minnced:udpqueue-native-win-x86:0.2.7"
+    implementation "club.minnced:udpqueue-native-darwin:0.2.7"
 
-    implementation 'com.github.walkyst:lavaplayer-fork:1.4.1' //Lavaplayer
+    implementation 'dev.arbjerg:lavaplayer:2.0.1' //Lavaplayer
     implementation 'com.github.natanbc:lavadsp:0.7.7' // Lavadsp
     implementation 'com.github.natanbc:native-loader:0.7.0' // Native library loader
     implementation 'se.michaelthelin.spotify:spotify-web-api-java:8.0.0' //Spotify web API wrapper
@@ -47,7 +47,7 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
 
     compileOnly 'com.google.code.findbugs:jsr305:3.0.2' // javax.annotations
-    runtimeOnly 'org.jetbrains.kotlin:kotlin-scripting-jsr223:1.8.21' // Kotlin DSL
+    runtimeOnly 'org.jetbrains.kotlin:kotlin-scripting-jsr223:1.9.10' // Kotlin DSL
 }
 
 publishing.publications {
